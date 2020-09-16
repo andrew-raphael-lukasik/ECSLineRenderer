@@ -174,7 +174,7 @@ MonoBehaviour:
     x: 3.535
     y: -1.68
     z: 3.535
-  width: 0.4
+  width: 0.04
   materialOverride: {fileID: 0}
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
 --- !u!1 &224951106
@@ -228,7 +228,7 @@ MonoBehaviour:
     x: 5
     y: -1.68
     z: 0
-  width: 0.4
+  width: 0.04
   materialOverride: {fileID: 0}
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
 --- !u!1 &296913256
@@ -282,7 +282,7 @@ MonoBehaviour:
     x: 0
     y: -1.68
     z: 5
-  width: 0.4
+  width: 0.04
   materialOverride: {fileID: 0}
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
 --- !u!1 &557766686
@@ -336,7 +336,7 @@ MonoBehaviour:
     x: -3.535
     y: -1.68
     z: 3.535
-  width: 0.4
+  width: 0.04
   materialOverride: {fileID: 0}
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
 --- !u!1 &1149064069
@@ -420,7 +420,7 @@ MonoBehaviour:
     x: -5
     y: -1.68
     z: 0
-  width: 0.4
+  width: 0.04
   materialOverride: {fileID: 0}
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
 --- !u!1 &1318877004
@@ -474,7 +474,7 @@ MonoBehaviour:
     x: 0
     y: -1.68
     z: -5
-  width: 0.4
+  width: 0.04
   materialOverride: {fileID: 0}
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
 --- !u!1 &1711332776
@@ -529,7 +529,7 @@ MonoBehaviour:
     x: -13
     y: 14
     z: 13
-  width: 1.5
+  width: 0.15
   materialOverride: {fileID: 0}
   color: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &1711332779
@@ -596,7 +596,7 @@ MonoBehaviour:
     x: 3.535
     y: -1.68
     z: -3.535
-  width: 0.4
+  width: 0.04
   materialOverride: {fileID: 0}
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
 --- !u!1 &1941934109
@@ -653,7 +653,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialOverride: {fileID: 0}
-  width: 0.4
+  width: 0.04
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
 --- !u!114 &1941934112
 MonoBehaviour:
@@ -719,6 +719,6 @@ MonoBehaviour:
     x: -3.535
     y: -1.68
     z: -3.535
-  width: 0.4
+  width: 0.04
   materialOverride: {fileID: 0}
   color: {r: 1, g: 0.7357569, b: 0.2971698, a: 1}
