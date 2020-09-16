@@ -1,0 +1,25 @@
+{
+    "name": "com.andrewraphaellukasik.ecslinerenderer",
+    "author": "",
+    "displayName": "ECS Line Renderer",
+    "version": "1.0.0",
+    "unity": "2020.1",
+    "description": "ECS approach to render a line.",
+	"documentationUrl": "https://github.com/andrew-raphael-lukasik/ECSLineRenderer",
+    "dependencies": {
+        "com.unity.entities": "0.11.1-preview.4",
+        "com.unity.rendering.hybrid": "0.5.2-preview.4"
+    },
+    "keywords": [
+        "entities",
+        "hybrid",
+        "rendering"
+    ],
+	"samples": [
+		{
+			"displayName": "Samples",
+			"description": "",
+			"path": "Samples"
+		}
+	]
+}
