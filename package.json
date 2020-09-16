@@ -7,8 +7,8 @@
     "description": "ECS approach to render a line.",
 	"documentationUrl": "https://github.com/andrew-raphael-lukasik/ECSLineRenderer",
     "dependencies": {
-        "com.unity.entities": "0.11.1-preview.4",
-        "com.unity.rendering.hybrid": "0.5.2-preview.4"
+        "com.unity.entities": "0.14.0-preview.19",
+        "com.unity.rendering.hybrid": "0.8.0-preview.19"
     },
     "keywords": [
         "entities",
