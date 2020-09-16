@@ -10,7 +10,7 @@ Material:
   m_Name: default-line
   m_Shader: {fileID: -6465566751694194690, guid: 428148a32dad64d419483e1b767d979f,
     type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: UVCORRECTION_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -62,6 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - UVCORRECTION: 1
     - VIGNETTE: 0
     - Vector1_b2bc354c63b94e308403d4683845d983: 0
     - _AlphaClip: 0
