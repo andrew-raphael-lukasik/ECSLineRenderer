@@ -10,54 +10,53 @@ namespace EcsLineRenderer.Samples
 	class DrawBoundingBoxLines : MonoBehaviour
 	{
 
+		[SerializeField] Material _materialOverride = null;
+
 		MeshRenderer _meshRenderer = null;
-
-		static Entity[] _entities;
-		static int _index = 0;
-		static World _worldLR;
-		static EntityManager _commandLR;
-
+		Entity[] _entities;
+		World _worldLR;
+		EntityManager _commandLR;
 		const int k_cube_vertices = 12;
 
-		void Start ()
+
+		void OnEnable ()
 		{
 			_meshRenderer = GetComponent<MeshRenderer>();
 
 			// make sure LR world exists:
-			if( _worldLR==null || !_worldLR.IsCreated )
-			{
-				_worldLR = LineRendererWorld.GetOrCreateWorld();
-				_commandLR = _worldLR.EntityManager;
-			}
+			_worldLR = LineRendererWorld.GetOrCreateWorld();
+			_commandLR = _worldLR.EntityManager;
 
 			// initialize segment pool:
-			LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities );
+			if( _entities==null || _entities.Length==0 )
+			{
+				if( _materialOverride!=null )
+					LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _materialOverride );
+				else
+					LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities );
+			}
+		}
+
+		void OnDisable ()
+		{
+			if( LineRendererWorld.IsCreated )
+				LineRendererWorld.Downsize( ref _entities , 0 );
 		}
 
 		void Update ()
 		{
 			var bounds = _meshRenderer.bounds;
 			
-			LineRendererWorld.Upsize( ref _entities , _index+k_cube_vertices );
+			int index = 0;
+			LineRendererWorld.Upsize( ref _entities , index+k_cube_vertices );
 			Plot.Box(
 				command:	_commandLR ,
 				entities:	 _entities ,
-				index:		ref _index ,
+				index:		ref index ,
 				size:		bounds.size ,
 				pos:		bounds.center ,
 				rot:		quaternion.identity
 			);
-		}
-
-		void LateUpdate ()
-		{
-			// reset shared index:
-			_index = 0;
-		}
-
-		void OnDestroy ()
-		{
-			LineRendererWorld.Downsize( ref _entities , _entities.Length-k_cube_vertices );
 		}
 
 	}

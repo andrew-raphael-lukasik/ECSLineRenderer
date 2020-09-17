@@ -2,15 +2,20 @@
 
 namespace EcsLineRenderer.Samples
 {
-    [AddComponentMenu("")]
-    class TransformRotate : MonoBehaviour
-    {
+	[AddComponentMenu("")]
+	class TransformRotate : MonoBehaviour
+	{
 
-        void OnDrawGizmos ()
-            => Update();
-        
-        void Update ()
-            => transform.Rotate( 0f , 33f * Time.deltaTime , 0f );
-        
-    }
+		[SerializeField] bool _onDrawGizmos = true;
+
+		void OnDrawGizmos ()
+		{
+			if( _onDrawGizmos )
+				Update();
+		}
+		
+		void Update ()
+			=> transform.Rotate( 0f , 33f * Time.deltaTime , 0f );
+		
+	}
 }
