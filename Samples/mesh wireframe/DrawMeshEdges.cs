@@ -6,14 +6,13 @@ using Unity.Entities;
 
 namespace EcsLineRenderer.Samples
 {
-	[ExecuteAlways]
 	[AddComponentMenu("")]
 	[RequireComponent( typeof(MeshFilter) )]
 	class DrawMeshEdges : MonoBehaviour
 	{
 		
 		[SerializeField] Material _materialOverride = null;
-		[SerializeField] float _widthOverride = 0.1f;
+		[SerializeField] float _widthOverride = 0.003f;
 
 		Entity[] _entities;
 		EntityManager _commandLR;

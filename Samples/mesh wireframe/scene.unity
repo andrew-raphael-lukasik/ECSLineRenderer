@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 542626617f0aa574f93bc0a4f63e9069, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _onDrawGizmos: 1
+  _onDrawGizmos: 0
 --- !u!4 &1106899984
 Transform:
   m_ObjectHideFlags: 0
@@ -161,7 +161,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1106899982}
   m_LocalRotation: {x: 0, y: 0.6229146, z: 0, w: 0.7822899}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.15, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1149340456}
@@ -208,7 +208,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _materialOverride: {fileID: 2100000, guid: 2b729257d95865e4ab1ebcabf827e3c4, type: 2}
-  _widthOverride: 0.005
+  _widthOverride: 0.003
 --- !u!4 &1149340456
 Transform:
   m_ObjectHideFlags: 0
@@ -216,7 +216,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1149340452}
-  m_LocalRotation: {x: -0.38362443, y: -0.8318562, z: 0.1679543, w: -0.36419645}
+  m_LocalRotation: {x: 0.09675605, y: 0.20980869, z: 0.4074492, w: -0.88351786}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -235,7 +235,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 542626617f0aa574f93bc0a4f63e9069, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _onDrawGizmos: 1
+  _onDrawGizmos: 0
 --- !u!1 &1292624761
 GameObject:
   m_ObjectHideFlags: 0

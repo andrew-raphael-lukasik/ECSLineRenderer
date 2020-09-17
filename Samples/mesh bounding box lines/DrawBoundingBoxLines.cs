@@ -5,13 +5,13 @@ using Unity.Entities;
 
 namespace EcsLineRenderer.Samples
 {
-	[ExecuteAlways]
 	[AddComponentMenu("")]
 	[RequireComponent( typeof(MeshRenderer) )]
 	class DrawBoundingBoxLines : MonoBehaviour
 	{
 
 		[SerializeField] Material _materialOverride = null;
+		[SerializeField] float _widthOverride = 0.003f;
 
 		MeshRenderer _meshRenderer = null;
 		Entity[] _entities;
@@ -31,9 +31,19 @@ namespace EcsLineRenderer.Samples
 			if( _entities==null || _entities.Length==0 )
 			{
 				if( _materialOverride!=null )
-					LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _materialOverride );
+				{
+					if( _widthOverride>0f )
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _widthOverride , _materialOverride );
+					else
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _materialOverride );
+				}
 				else
-					LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities );
+				{
+					if( _widthOverride>0f )
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _widthOverride );
+					else
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities );
+				}
 			}
 		}
 
@@ -45,9 +55,8 @@ namespace EcsLineRenderer.Samples
 
 		void Update ()
 		{
-			var bounds = _meshRenderer.bounds;
-			
 			int index = 0;
+			var bounds = _meshRenderer.bounds;
 			LineRendererWorld.Upsize( ref _entities , index+k_cube_vertices );
 			Plot.Box(
 				command:	_commandLR ,
