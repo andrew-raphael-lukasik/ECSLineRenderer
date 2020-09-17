@@ -11,9 +11,7 @@ Line renderer for Unity.Entities tech stack
 # instalation Unity 2020.x
 Add this line in `manifest.json` / `dependencies`:
 ```
-"dependencies": {
-    "com.andrewraphaellukasik.ecslinerenderer": "https://github.com/andrew-raphael-lukasik/ECSLineRenderer.git#upm",
-}
+"com.andrewraphaellukasik.ecslinerenderer": "https://github.com/andrew-raphael-lukasik/ECSLineRenderer.git#upm",
 ```
 
 Or via `Package Manager` / `Add package from git URL`:
