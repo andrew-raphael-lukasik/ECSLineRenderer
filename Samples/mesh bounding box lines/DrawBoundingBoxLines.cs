@@ -5,6 +5,7 @@ using Unity.Entities;
 
 namespace EcsLineRenderer.Samples
 {
+	[ExecuteAlways]
 	[AddComponentMenu("")]
 	[RequireComponent( typeof(MeshRenderer) )]
 	class DrawBoundingBoxLines : MonoBehaviour
@@ -14,7 +15,6 @@ namespace EcsLineRenderer.Samples
 
 		MeshRenderer _meshRenderer = null;
 		Entity[] _entities;
-		World _worldLR;
 		EntityManager _commandLR;
 		const int k_cube_vertices = 12;
 
@@ -24,8 +24,8 @@ namespace EcsLineRenderer.Samples
 			_meshRenderer = GetComponent<MeshRenderer>();
 
 			// make sure LR world exists:
-			_worldLR = LineRendererWorld.GetOrCreateWorld();
-			_commandLR = _worldLR.EntityManager;
+			var worldLR = LineRendererWorld.GetOrCreateWorld();
+			_commandLR = worldLR.EntityManager;
 
 			// initialize segment pool:
 			if( _entities==null || _entities.Length==0 )
