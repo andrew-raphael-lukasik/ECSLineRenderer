@@ -11,10 +11,10 @@ namespace EcsLineRenderer.Samples
 	{
 
 		[SerializeField] Material _materialOverride = null;
+		[SerializeField] float _widthOverride = 0.003f;
 
 		MeshRenderer _meshRenderer = null;
 		Entity[] _entities;
-		World _worldLR;
 		EntityManager _commandLR;
 		const int k_cube_vertices = 12;
 
@@ -24,16 +24,26 @@ namespace EcsLineRenderer.Samples
 			_meshRenderer = GetComponent<MeshRenderer>();
 
 			// make sure LR world exists:
-			_worldLR = LineRendererWorld.GetOrCreateWorld();
-			_commandLR = _worldLR.EntityManager;
+			var worldLR = LineRendererWorld.GetOrCreateWorld();
+			_commandLR = worldLR.EntityManager;
 
 			// initialize segment pool:
 			if( _entities==null || _entities.Length==0 )
 			{
 				if( _materialOverride!=null )
-					LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _materialOverride );
+				{
+					if( _widthOverride>0f )
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _widthOverride , _materialOverride );
+					else
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _materialOverride );
+				}
 				else
-					LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities );
+				{
+					if( _widthOverride>0f )
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _widthOverride );
+					else
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities );
+				}
 			}
 		}
 
@@ -45,9 +55,8 @@ namespace EcsLineRenderer.Samples
 
 		void Update ()
 		{
-			var bounds = _meshRenderer.bounds;
-			
 			int index = 0;
+			var bounds = _meshRenderer.bounds;
 			LineRendererWorld.Upsize( ref _entities , index+k_cube_vertices );
 			Plot.Box(
 				command:	_commandLR ,
