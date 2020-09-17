@@ -170,7 +170,7 @@ namespace EcsLineRenderer
 		}
 
 		/// Upsizes pool length when it's < minLength
-		public static void PoolLengthMin ( NativeArray<Entity> entities , int minLength )
+		public static void Upsize ( NativeArray<Entity> entities , int minLength )
 		{
 			Assert.IsTrue( entities.IsCreated );
 			int length = entities.Length;
@@ -220,7 +220,7 @@ namespace EcsLineRenderer
 			}
 		}
 		/// Upsizes pool length when it's < minLength
-		public static void PoolLengthMin ( ref Entity[] entities , int minLength )
+		public static void Upsize ( ref Entity[] entities , int minLength )
 		{
 			Assert.IsNotNull( entities );
 			int length = entities.Length;
@@ -266,7 +266,7 @@ namespace EcsLineRenderer
 		}
 
 		/// Downsizes pool length when it's > maxLength
-		public static void PoolLengthMax ( ref Entity[] entities , int maxLength )
+		public static void Downsize ( ref Entity[] entities , int maxLength )
 		{
 			Assert.IsNotNull( entities , $"{nameof(entities)} array is null" );
 			int length = entities.Length;
