@@ -1,0 +1,26 @@
+{
+  "name": "com.andrewraphaellukasik.ecslinerenderer",
+  "author": "",
+  "displayName": "ECS Line Renderer",
+  "version": "1.0.0",
+  "unity": "2020.1",
+  "description": "DOTS line rendering solution",
+  "documentationUrl": "https://github.com/andrew-raphael-lukasik/ECSLineRenderer",
+  "dependencies": {
+    "com.unity.entities": "0.14.0-preview.19",
+    "com.unity.rendering.hybrid": "0.8.0-preview.19"
+  },
+  "keywords": [
+    "entities",
+    "hybrid",
+    "rendering"
+  ],
+  "samples": [
+    {
+      "displayName": "Samples",
+      "description": "",
+      "path": "Samples"
+    }
+  ],
+  "hideInEditor": true
+}
