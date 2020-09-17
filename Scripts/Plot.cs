@@ -291,6 +291,7 @@ namespace EcsLineRenderer
 		}
 
 
+		/// <summary> 12 segments </summary>
 		public static void Cube
 		(
 			EntityManager command , Entity[] entities , ref int index ,
@@ -308,6 +309,41 @@ namespace EcsLineRenderer
 			float3 T1 = math.mul( rot , new float3{ x=-f , y=f , z=-f } );
 			float3 T2 = math.mul( rot , new float3{ x=-f , y=f , z=f } );
 			float3 T3 = math.mul( rot , new float3{ x=f , y=f , z=f } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+B0 , end=pos+B1 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+B1 , end=pos+B2 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+B2 , end=pos+B3 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+B3 , end=pos+B0 } );
+
+			command.SetComponentData( entities[index++] , new Segment { start=pos+T0 , end=pos+T1 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+T1 , end=pos+T2 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+T2 , end=pos+T3 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+T3 , end=pos+T0 } );
+
+			command.SetComponentData( entities[index++] , new Segment { start=pos+B0 , end=pos+T0 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+B1 , end=pos+T1 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+B2 , end=pos+T2 } );
+			command.SetComponentData( entities[index++] , new Segment { start=pos+B3 , end=pos+T3 } );
+		}
+
+
+		/// <summary> 12 segments </summary>
+		public static void Box
+		(
+			EntityManager command , Entity[] entities , ref int index ,
+			float3 size ,
+			float3 pos ,
+			quaternion rot
+		)
+		{
+			float3 f = size * 0.5f;
+			float3 B0 = math.mul( rot , new float3{ x=f.x , y=-f.y , z=-f.z } );
+			float3 B1 = math.mul( rot , new float3{ x=-f.x , y=-f.y , z=-f.z } );
+			float3 B2 = math.mul( rot , new float3{ x=-f.x , y=-f.y , z=f.z } );
+			float3 B3 = math.mul( rot , new float3{ x=f.x , y=-f.y , z=f.z } );
+			float3 T0 = math.mul( rot , new float3{ x=f.x , y=f.y , z=-f.z } );
+			float3 T1 = math.mul( rot , new float3{ x=-f.x , y=f.y , z=-f.z } );
+			float3 T2 = math.mul( rot , new float3{ x=-f.x , y=f.y , z=f.z } );
+			float3 T3 = math.mul( rot , new float3{ x=f.x , y=f.y , z=f.z } );
 			command.SetComponentData( entities[index++] , new Segment { start=pos+B0 , end=pos+B1 } );
 			command.SetComponentData( entities[index++] , new Segment { start=pos+B1 , end=pos+B2 } );
 			command.SetComponentData( entities[index++] , new Segment { start=pos+B2 , end=pos+B3 } );
