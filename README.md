@@ -2,10 +2,10 @@
 Line renderer for Unity.Entities tech stack
 
 # samples
-- mesh wireframe
+- mesh wireframe (runtime)
 <img src="https://i.imgur.com/NCC71mD.gif" height="200">
 
-- drawing mesh bounding boxes
+- drawing mesh bounding boxes (runtime)
 <img src="https://i.imgur.com/J1mzvSbl.jpg" height="200">
 
 # instalation Unity 2020.x
