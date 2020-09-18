@@ -1,6 +1,13 @@
 # ECSLineRenderer
 Line renderer for Unity.Entities tech stack
 
+# requirements
+- for built-in shader:
+```
+"com.unity.render-pipelines.universal": "9.0.0-preview.55"
+```
+note: you can override dafault shader/material with your own.
+
 # samples
 - mesh wireframe (runtime)
 <img src="https://i.imgur.com/NCC71mD.gif" height="200">
