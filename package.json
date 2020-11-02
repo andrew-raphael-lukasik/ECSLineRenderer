@@ -1,7 +1,11 @@
 {
   "name": "com.andrewraphaellukasik.ecslinerenderer",
-  "author": "",
-  "displayName": "ECS Line Renderer",
+  "author": {
+    "name": "Andrzej Rafał Łukasik",
+    "email": "andrew.r.lukasik@gmail.com",
+    "url": "https://github.com/andrew-raphael-lukasik"
+  },
+  "displayName": "ECS LineRenderer",
   "version": "1.0.0",
   "unity": "2020.1",
   "description": "DOTS line rendering solution",
