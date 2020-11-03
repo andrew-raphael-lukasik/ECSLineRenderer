@@ -15,7 +15,7 @@ note: you can override dafault shader/material with your own.
 - drawing mesh bounding boxes (runtime)
 <img src="https://i.imgur.com/J1mzvSbl.jpg" height="200">
 
-# instalation Unity 2020.x
+# installation Unity 2020.x
 Add this line in `manifest.json` / `dependencies`:
 ```
 "com.andrewraphaellukasik.ecslinerenderer": "https://github.com/andrew-raphael-lukasik/ECSLineRenderer.git#upm",
