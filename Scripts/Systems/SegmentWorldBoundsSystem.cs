@@ -48,14 +48,13 @@ namespace EcsLineRenderer
 
 			if( LineRendererWorld.IsCreated && this.World==LineRendererWorld.GetWorld() )
 			{
-				var boundsJob = new BoundsJob
-				{
+				var boundsJob = new BoundsJob{
 					rendererBounds = GetComponentTypeHandle<RenderBounds>(true),
 					localToWorld = GetComponentTypeHandle<LocalToWorld>(true),
 					worldRenderBounds = GetComponentTypeHandle<WorldRenderBounds>(),
 					chunkWorldRenderBounds = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				};
-				boundsJob.ScheduleParallel( _query );
+				Dependency = boundsJob.ScheduleParallel( _query , Dependency );
 			}
 
 			Entities
