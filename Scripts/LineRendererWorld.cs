@@ -100,9 +100,11 @@ namespace EcsLineRenderer
 			{
 				var systems = new System.Type[] {
 						typeof(RenderMeshSystemV2)
-					,	typeof(UpdatePresentationSystemGroup)// warning from RenderMeshSystemV2 otherwise, nothing else
-					,	typeof(PresentationSystemGroup)// warning from RenderMeshSystemV2 otherwise, nothing else
-					,	typeof(StructuralChangePresentationSystemGroup)// warning from RenderMeshSystemV2 otherwise, nothing else
+
+						// fixes: warning from RenderMeshSystemV2
+					,	typeof(UpdatePresentationSystemGroup)
+					,	typeof(PresentationSystemGroup)
+					,	typeof(StructuralChangePresentationSystemGroup)
 
 					,	typeof(SegmentInitializationSystem)
 					,	typeof(SegmentTransformSystem)
@@ -143,11 +145,7 @@ namespace EcsLineRenderer
 
 				command.SetComponentData( prefab , new SegmentWidth{ Value = (half)width } );
 			}
-			entities = command.Instantiate(
-				srcEntity:		prefab ,
-				instanceCount:	length ,
-				allocator:		Allocator.Temp
-			);
+			entities = command.Instantiate( srcEntity:prefab , instanceCount:length , allocator:Allocator.Temp );
 			command.DestroyEntity( prefab );
 		}
 		public static void InstantiatePool ( int length , out Entity[] entities ) => InstantiatePool( length , out entities , Prototypes.k_defaul_segment_width , Internal.ResourceProvider.default_material );
@@ -186,27 +184,16 @@ namespace EcsLineRenderer
 				if( entities!=null && length!=0 )
 				{
 					var prefab = entities[0];
-					newEntities = command.Instantiate(
-						srcEntity:		prefab ,
-						instanceCount:	difference ,
-						allocator:		Allocator.Temp
-					);
+					newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
 				}
 				else
 				{
 					var prefab = GetSegmentPrefabCopy();
-					newEntities = command.Instantiate(
-						srcEntity:		prefab ,
-						instanceCount:	difference ,
-						allocator:		Allocator.Temp
-					);
+					newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
 					command.DestroyEntity( prefab );
 				}
 				var resizedEntities = new NativeArray<Entity>( minLength , Allocator.Persistent , NativeArrayOptions.UninitializedMemory );
-				NativeArray<Entity>.Copy(
-					src:		entities ,
-					dst:		resizedEntities
-				);
+				NativeArray<Entity>.Copy( src:entities , dst:resizedEntities );
 				NativeArray<Entity>.Copy(
 					src:		newEntities ,
 					srcIndex:	0 ,
@@ -236,20 +223,12 @@ namespace EcsLineRenderer
 				if( entities!=null && length!=0 )
 				{
 					var prefab = entities[0];
-					newEntities = command.Instantiate(
-						srcEntity:		prefab ,
-						instanceCount:	difference ,
-						allocator:		Allocator.Temp
-					);
+					newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
 				}
 				else
 				{
 					var prefab = GetSegmentPrefabCopy();
-					newEntities = command.Instantiate(
-						srcEntity:		prefab ,
-						instanceCount:	difference ,
-						allocator:		Allocator.Temp
-					);
+					newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
 					command.DestroyEntity( prefab );
 				}
 				Entity[] newEntitiesArray = newEntities.ToArray();
