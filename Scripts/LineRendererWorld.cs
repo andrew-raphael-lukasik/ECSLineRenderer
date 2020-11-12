@@ -106,6 +106,9 @@ namespace EcsLineRenderer
 					,	typeof(PresentationSystemGroup)
 					,	typeof(StructuralChangePresentationSystemGroup)
 
+					// fixes: "Internal: deleting an allocation that is older than its permitted lifetime of 4 frames (age = 15)"
+					,	typeof(EndSimulationEntityCommandBufferSystem)
+
 					,	typeof(SegmentInitializationSystem)
 					,	typeof(SegmentTransformSystem)
 					,	typeof(SegmentWorldBoundsSystem)
