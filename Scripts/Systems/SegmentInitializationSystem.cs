@@ -11,11 +11,19 @@ namespace EcsLineRenderer
 	[UpdateInGroup(typeof(InitializationSystemGroup))]
 	public class SegmentInitializationSystem : SystemBase
 	{
+
+		EndSimulationEntityCommandBufferSystem _endSimulationEcbSystem;
+
+		protected override void OnCreate ()
+		{
+			_endSimulationEcbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+		}
+
 		protected override void OnUpdate ()
 		{
 			var renderMesh = Prototypes.renderMesh;
 			var renderBounds = Prototypes.renderBounds;
-			var ecb = new EntityCommandBuffer( Allocator.Temp );
+			var ecb = _endSimulationEcbSystem.CreateCommandBuffer();
 
 			Entities
 				.WithName("add_components_job_shared_segment_material_override")
@@ -53,16 +61,9 @@ namespace EcsLineRenderer
 					ecb.AddComponent<WorldRenderBounds>( entity );
 					ecb.AddComponent<SegmentAspectRatio>( entity );
 				})
-				.WithoutBurst().Run();
+				.WithoutBurst().Schedule();
 
-			Job
-				.WithName("playback_commands")
-				.WithCode( () =>
-				{
-					ecb.Playback( EntityManager );
-					ecb.Dispose();
-				})
-				.WithoutBurst().Run();
+			_endSimulationEcbSystem.AddJobHandleForProducer( Dependency );
 		}
 
 	}
