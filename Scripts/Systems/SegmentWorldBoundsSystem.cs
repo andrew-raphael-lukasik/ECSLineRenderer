@@ -17,6 +17,7 @@ namespace EcsLineRenderer
 
 		EntityQuery _query;
 		EntityQuery _query_noCWRB;
+		EndSimulationEntityCommandBufferSystem _endSimulationEcbSystem;
 
 		protected override void OnCreate ()
 		{
@@ -34,17 +35,24 @@ namespace EcsLineRenderer
 					ComponentType.ReadOnly<RenderBounds>()
 				,	ComponentType.ReadOnly<LocalToWorld>()
 			});
-			
+
 			_query_noCWRB = GetEntityQuery ( new EntityQueryDesc{
 				All = new[] { ComponentType.ReadOnly<Segment>() } ,
 				None = new[] { ComponentType.ChunkComponent<ChunkWorldRenderBounds>() }
 			} );
+
+			_endSimulationEcbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 		}
 
 		protected override void OnUpdate ()
 		{
-			var ecb = new EntityCommandBuffer( Allocator.TempJob );
-			var cmd = ecb.AsParallelWriter();
+			var ecb = _endSimulationEcbSystem.CreateCommandBuffer();
+			var ecb_pw = ecb.AsParallelWriter();
+
+			EntityManager.AddChunkComponentData<ChunkWorldRenderBounds>(
+				_query_noCWRB ,
+				default(ChunkWorldRenderBounds)
+			);
 
 			if( LineRendererWorld.IsCreated && this.World==LineRendererWorld.GetWorld() )
 			{
@@ -63,23 +71,11 @@ namespace EcsLineRenderer
 				.WithNone<WorldRenderBounds>()
 				.ForEach( ( in int entityInQueryIndex , in Entity entity )=>
 				{
-					cmd.AddComponent<WorldRenderBounds>( entityInQueryIndex , entity );
+					ecb_pw.AddComponent<WorldRenderBounds>( entityInQueryIndex , entity );
 				})
 				.ScheduleParallel();
 
-			Job
-				.WithName("playback_commands")
-				.WithCode( ()=>
-				{
-					ecb.Playback( EntityManager );
-					ecb.Dispose();
-				})
-				.WithoutBurst().Run();
-
-			EntityManager.AddChunkComponentData<ChunkWorldRenderBounds>(
-				_query_noCWRB ,
-				default(ChunkWorldRenderBounds)
-			);
+			_endSimulationEcbSystem.AddJobHandleForProducer( Dependency );
 		}
 
 		[Unity.Burst.BurstCompile]
