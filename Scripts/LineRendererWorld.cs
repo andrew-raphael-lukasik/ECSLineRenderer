@@ -99,7 +99,11 @@ namespace EcsLineRenderer
 			var world = new World( name );
 			{
 				var systems = new System.Type[] {
+					#if ENABLE_HYBRID_RENDERER_V2
+						typeof(HybridRendererSystem)
+					#else
 						typeof(RenderMeshSystemV2)
+					#endif
 
 						// fixes: warning from RenderMeshSystemV2
 					,	typeof(UpdatePresentationSystemGroup)
