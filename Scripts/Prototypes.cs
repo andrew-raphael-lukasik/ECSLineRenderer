@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System.Linq;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -12,8 +13,28 @@ namespace EcsLineRenderer
 
 		static Prototypes ()
 		{
+			segment_components = new ComponentType[]{
+					typeof(Segment)
+				,	typeof(SegmentWidth)
+				,	typeof(SegmentAspectRatio)
+				
+				,	typeof(LocalToWorld)
+				,	typeof(RenderMesh)
+				,	typeof(RenderBounds)
+				,	typeof(WorldRenderBounds)
+				,	ComponentType.ChunkComponent<ChunkWorldRenderBounds>()
+
+				,   typeof(AmbientProbeTag)
+				,   typeof(PerInstanceCullingTag)
+				,   typeof(WorldToLocal_Tag)
+				,   typeof(BuiltinMaterialPropertyUnity_RenderingLayer)
+				,   typeof(BuiltinMaterialPropertyUnity_LightData)
+			};
 			segment_component_types = new ComponentTypes( segment_components );
-			segment_prefab_component_types = new ComponentTypes( segment_prefab_components );
+			
+			segment_prefab_components = new ComponentType[]{ typeof(Prefab) }
+				.Concat( segment_components ).ToArray();
+			segment_prefab_components_types = new ComponentTypes( segment_prefab_components );
 		}
 
 		public static readonly RenderMesh renderMesh = new RenderMesh{
@@ -40,32 +61,10 @@ namespace EcsLineRenderer
 		};
 
 		public static readonly ComponentTypes segment_component_types;
-		public static readonly ComponentType[] segment_components = new ComponentType[] {
-				typeof(Segment)
-			,	typeof(SegmentWidth)
-			,	typeof(SegmentAspectRatio)
-			
-			,	typeof(LocalToWorld)
-			,	typeof(RenderMesh)
-			,	typeof(RenderBounds)
-			,	typeof(WorldRenderBounds)
-			,	ComponentType.ChunkComponent<ChunkWorldRenderBounds>()
-		};
+		public static readonly ComponentType[] segment_components;
 
-		public static readonly ComponentTypes segment_prefab_component_types;
-		public static readonly ComponentType[] segment_prefab_components = new ComponentType[] {
-				typeof(Prefab)
-
-			,	typeof(Segment)
-			,	typeof(SegmentWidth)
-			,	typeof(SegmentAspectRatio)
-			
-			,	typeof(LocalToWorld)
-			,	typeof(RenderMesh)
-			,	typeof(RenderBounds)
-			,	typeof(WorldRenderBounds)
-			,	ComponentType.ChunkComponent<ChunkWorldRenderBounds>()
-		};
+		public static readonly ComponentTypes segment_prefab_components_types;
+		public static readonly ComponentType[] segment_prefab_components;
 
 	}
 }

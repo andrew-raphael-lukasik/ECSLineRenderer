@@ -23,45 +23,71 @@ namespace EcsLineRenderer
 		{
 			var renderMesh = Prototypes.renderMesh;
 			var renderBounds = Prototypes.renderBounds;
-			var ecb = _endSimulationEcbSystem.CreateCommandBuffer();
+			var renderingLayer = new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint) renderMesh.layer } };
+			var lightData = new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } };
+			var command = _endSimulationEcbSystem.CreateCommandBuffer();
 
 			Entities
-				.WithName("add_components_job_shared_segment_material_override")
+				.WithName("add_components_job_shared_segment_material_override_1")
 				.WithNone<RenderMesh>()
-				.ForEach( ( in Entity entity , in SegmentSharedMaterialOverride material , in Segment segment ) =>
+				.WithAll<Segment>()
+				.ForEach( ( in Entity entity , in SegmentSharedMaterialOverride material ) =>
 				{
 					renderMesh.material = material.Value;
-					ecb.AddSharedComponent( entity , renderMesh );
-					ecb.RemoveComponent<SegmentSharedMaterialOverride>( entity );
-
-					ecb.AddComponent<LocalToWorld>( entity );
-					
-					ecb.AddComponent<RenderBounds>( entity );
-					ecb.SetComponent( entity , renderBounds );
-
-					ecb.AddComponent<WorldRenderBounds>( entity );
-					ecb.AddComponent<SegmentAspectRatio>( entity );
+					command.AddSharedComponent( entity , renderMesh );
 				})
 				.WithoutBurst().Run();
-
-			Entities
-				.WithName("add_components_job")
+			JobHandle job1 = Entities
+				.WithName("add_components_job_shared_segment_material_override_2")
 				.WithNone<RenderMesh>()
-				.ForEach( ( in Entity entity , in SegmentMaterialOverride material , in Segment segment ) =>
+				.WithAll<SegmentSharedMaterialOverride,Segment>()
+				.ForEach( ( in Entity entity ) =>
+				{
+					command.RemoveComponent<SegmentSharedMaterialOverride>( entity );
+					command.AddComponent<LocalToWorld>( entity );
+					command.AddComponent<RenderBounds>( entity , renderBounds );
+					command.AddComponent<WorldRenderBounds>( entity );
+					command.AddComponent<SegmentAspectRatio>( entity );
+
+					command.AddComponent<AmbientProbeTag>( entity );
+					command.AddComponent<PerInstanceCullingTag>( entity );
+					command.AddComponent<WorldToLocal_Tag>( entity );
+					command.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
+					command.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
+				})
+				.WithBurst().ScheduleParallel( Dependency );
+
+			JobHandle job2 = Entities
+				.WithName("add_components_job_1")
+				.WithNone<RenderMesh>()
+				.WithAll<Segment>()
+				.ForEach( ( in Entity entity , in SegmentMaterialOverride material ) =>
 				{
 					renderMesh.material = material;
-					ecb.AddSharedComponent( entity , renderMesh );
-					ecb.RemoveComponent<SegmentMaterialOverride>( entity );
-
-					ecb.AddComponent<LocalToWorld>( entity );
-					
-					ecb.AddComponent<RenderBounds>( entity );
-					ecb.SetComponent( entity , renderBounds );
-
-					ecb.AddComponent<WorldRenderBounds>( entity );
-					ecb.AddComponent<SegmentAspectRatio>( entity );
+					command.AddSharedComponent( entity , renderMesh );
 				})
-				.WithoutBurst().Schedule();
+				.WithoutBurst().Schedule( Dependency );
+			job2 = Entities
+				.WithName("add_components_job_2")
+				.WithNone<RenderMesh>()
+				.WithAll<SegmentMaterialOverride,Segment>()
+				.ForEach( ( in Entity entity ) =>
+				{
+					command.RemoveComponent<SegmentMaterialOverride>( entity );
+					command.AddComponent<LocalToWorld>( entity );
+					command.AddComponent<RenderBounds>( entity , renderBounds );
+					command.AddComponent<WorldRenderBounds>( entity );
+					command.AddComponent<SegmentAspectRatio>( entity );
+
+					command.AddComponent<AmbientProbeTag>( entity );
+					command.AddComponent<PerInstanceCullingTag>( entity );
+					command.AddComponent<WorldToLocal_Tag>( entity );
+					command.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
+					command.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
+				})
+				.WithBurst().ScheduleParallel( job2 );
+			
+			Dependency = JobHandle.CombineDependencies( job1 , job2 );
 
 			_endSimulationEcbSystem.AddJobHandleForProducer( Dependency );
 		}

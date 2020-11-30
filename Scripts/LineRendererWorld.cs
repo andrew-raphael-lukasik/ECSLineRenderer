@@ -61,8 +61,14 @@ namespace EcsLineRenderer
 				command.AddComponentData<LocalToWorld>( _segmentPrefab , new LocalToWorld {
 					Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} )
 				});
-				command.SetSharedComponentData<RenderMesh>( _segmentPrefab , Prototypes.renderMesh );
-
+				var renderMesh = Prototypes.renderMesh;
+				command.SetSharedComponentData<RenderMesh>( _segmentPrefab , renderMesh );
+				command.SetComponentData( _segmentPrefab ,
+					new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } }
+				);
+				command.SetComponentData( _segmentPrefab ,
+					new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } }
+				);
 			}
 			var copy = command.Instantiate( _segmentPrefab );
 			command.AddComponent<Prefab>( copy );
@@ -91,21 +97,13 @@ namespace EcsLineRenderer
 		{
 			var world = new World( name );
 			{
-				var systems = new System.Type[] {
-					#if ENABLE_HYBRID_RENDERER_V2
+				var systems = new System.Type[]
+				{
 						typeof(HybridRendererSystem)
-					#else
-						typeof(RenderMeshSystemV2)
-					#endif
-
-						// fixes: warning from RenderMeshSystemV2
-					,	typeof(UpdatePresentationSystemGroup)
-					,	typeof(PresentationSystemGroup)
-					,	typeof(StructuralChangePresentationSystemGroup)
-
+					
 					// fixes: "Internal: deleting an allocation that is older than its permitted lifetime of 4 frames (age = 15)"
 					,	typeof(EndSimulationEntityCommandBufferSystem)
-
+					
 					,	typeof(SegmentInitializationSystem)
 					,	typeof(SegmentTransformSystem)
 					,	typeof(SegmentWorldBoundsSystem)
