@@ -20,7 +20,7 @@ namespace EcsLineRenderer
 			mesh			= ResourceProvider.default_mesh ,
 			material		= ResourceProvider.default_material ,
 			subMesh			= 0 ,
-			layer			= 1<<1 ,
+			layer			= 1 ,
 			castShadows		= UnityEngine.Rendering.ShadowCastingMode.Off ,
 			receiveShadows	= false ,
 		};
