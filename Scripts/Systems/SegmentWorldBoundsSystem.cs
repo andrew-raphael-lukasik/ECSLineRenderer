@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Jobs;

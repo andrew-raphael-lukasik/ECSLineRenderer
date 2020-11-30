@@ -14,10 +14,6 @@ namespace EcsLineRenderer
 	{
 		protected override void OnUpdate ()
 		{
-			#if UNITY_EDITOR
-			bool debug = Input.GetKey( KeyCode.LeftAlt );
-			#endif
-
 			Camera camera = Camera.main;
 			if( camera==null ) camera = Camera.current;
 			if( camera==null ) return;
@@ -35,19 +31,9 @@ namespace EcsLineRenderer
 						var pos = segment.start;
 						var scale = new float3{ x=segmentWidth.Value , y=1f , z=math.length(lineVec) };
 						ltr.Value = float4x4.TRS( pos , rot , scale );
-
-						#if UNITY_EDITOR
-						if( debug )
-						{
-							Color white = new Color{ r=1 , g=1 , b=1 , a=0.1f };
-							float3 c = pos + lineVec*0.5f;
-							Debug.DrawLine( c , c + math.mul( rot , new float3{x=1} ) , Color.red , 0.01f );
-							Debug.DrawLine( c , c + math.mul( rot , new float3{y=1} ) , Color.green , 0.01f );
-							Debug.DrawLine( c , c + math.mul( rot , new float3{z=1} ) , Color.blue , 0.01f );
-						}
-						#endif
-					}).ScheduleParallel();
-				}
+					})
+					.WithBurst().ScheduleParallel();
+			}
 			else// orthographic-projection camera
 			{
 				quaternion cameraRotation = cameraTransform.rotation;
@@ -60,18 +46,8 @@ namespace EcsLineRenderer
 						var pos = segment.start;
 						var scale = new float3{ x=segmentWidth.Value , y=1f , z=math.length(lineVec) };
 						ltr.Value = float4x4.TRS( pos , rot , scale );
-
-						#if UNITY_EDITOR
-						if( debug )
-						{
-							Color white = new Color{ r=1 , g=1 , b=1 , a=0.1f };
-							float3 c = pos + lineVec*0.5f;
-							Debug.DrawLine( c , c + math.mul( rot , new float3{x=1} ) , Color.red , 0.01f );
-							Debug.DrawLine( c , c + math.mul( rot , new float3{y=1} ) , Color.green , 0.01f );
-							Debug.DrawLine( c , c + math.mul( rot , new float3{z=1} ) , Color.blue , 0.01f );
-						}
-						#endif
-					}).ScheduleParallel();
+					})
+					.WithBurst().ScheduleParallel();
 			}
 
 			Entities
@@ -79,7 +55,8 @@ namespace EcsLineRenderer
 				.ForEach( ( ref SegmentAspectRatio aspectRatio , in Segment segment , in SegmentWidth segmentWidth ) =>
 				{
 					aspectRatio.Value = (float)segmentWidth.Value / math.length( segment.end - segment.start );
-				}).ScheduleParallel();
+				})
+				.WithBurst().ScheduleParallel();
 		}
 	}
 }
