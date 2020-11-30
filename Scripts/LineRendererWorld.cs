@@ -63,16 +63,9 @@ namespace EcsLineRenderer
 				});
 				command.SetSharedComponentData<RenderMesh>( _segmentPrefab , Prototypes.renderMesh );
 
-				#if UNITY_EDITOR
-				command.SetName( _segmentPrefab , "segment prefab" );
-				#endif
 			}
-			
 			var copy = command.Instantiate( _segmentPrefab );
 			command.AddComponent<Prefab>( copy );
-			#if UNITY_EDITOR
-			command.SetName( copy , "segment" );
-			#endif
 			return copy;
 		}
 

@@ -31,8 +31,7 @@ namespace EcsLineRenderer
 		{
 			var segmentArchetype = _segmentArchetype;
 			var defaultSegmentMaterial = Internal.ResourceProvider.default_segment_material;
-			var ecb = _endSimulationEcbSystem.CreateCommandBuffer();
-			var ecb_pw = ecb.AsParallelWriter();
+			var command = _endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
 			Entities
 				.WithName("add_components_job")
@@ -43,23 +42,23 @@ namespace EcsLineRenderer
 					for( int i=0 ; i<len ; i++ )
 					{
 						var seg = buffer[i];
-						var instance = ecb_pw.CreateEntity( entityInQueryIndex , segmentArchetype );
-						ecb_pw.SetComponent( entityInQueryIndex , instance , new Segment{
+						var instance = command.CreateEntity( entityInQueryIndex , segmentArchetype );
+						command.SetComponent( entityInQueryIndex , instance , new Segment{
 							start	= seg.start ,
 							end		= seg.end
 						} );
-						ecb_pw.SetComponent( entityInQueryIndex , instance , new SegmentWidth{
+						command.SetComponent( entityInQueryIndex , instance , new SegmentWidth{
 							Value	= seg.width
 						} );
-						ecb_pw.SetComponent( entityInQueryIndex , instance , defaultSegmentMaterial );
-						ecb_pw.SetComponent( entityInQueryIndex , instance , new MaterialColor{
+						command.SetComponent( entityInQueryIndex , instance , defaultSegmentMaterial );
+						command.SetComponent( entityInQueryIndex , instance , new MaterialColor{
 							Value = new float4{ x=seg.color.r , y=seg.color.g , z=seg.color.b , w=seg.color.a }
 						} );
 					}
 
-					ecb_pw.DestroyEntity( entityInQueryIndex , entity );
-				}
-				).ScheduleParallel();
+					command.DestroyEntity( entityInQueryIndex , entity );
+				} )
+				.WithBurst().ScheduleParallel();
 
 			Entities
 				.WithName("add_components_job_material_override")
@@ -69,23 +68,23 @@ namespace EcsLineRenderer
 					for( int i=0 ; i<len ; i++ )
 					{
 						var seg = buffer[i];
-						var instance = ecb_pw.CreateEntity( entityInQueryIndex , segmentArchetype );
-						ecb_pw.SetComponent( entityInQueryIndex , instance , new Segment{
+						var instance = command.CreateEntity( entityInQueryIndex , segmentArchetype );
+						command.SetComponent( entityInQueryIndex , instance , new Segment{
 							start	= seg.start ,
 							end		= seg.end
 						} );
-						ecb_pw.SetComponent( entityInQueryIndex , instance , new SegmentWidth{
+						command.SetComponent( entityInQueryIndex , instance , new SegmentWidth{
 							Value	= seg.width
 						} );
-						ecb_pw.SetComponent( entityInQueryIndex , instance , material );
-						ecb_pw.SetComponent( entityInQueryIndex , instance , new MaterialColor{
+						command.SetComponent( entityInQueryIndex , instance , material );
+						command.SetComponent( entityInQueryIndex , instance , new MaterialColor{
 							Value = new float4{ x=seg.color.r , y=seg.color.g , z=seg.color.b , w=seg.color.a }
 						} );
 					}
 
-					ecb_pw.DestroyEntity( entityInQueryIndex , entity );
-				}
-				).ScheduleParallel();
+					command.DestroyEntity( entityInQueryIndex , entity );
+				} )
+				.WithBurst().ScheduleParallel();
 			
 			_endSimulationEcbSystem.AddJobHandleForProducer( Dependency );
 		}
