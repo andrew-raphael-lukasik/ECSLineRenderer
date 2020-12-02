@@ -7,7 +7,7 @@ using Unity.Transforms;
 
 namespace EcsLineRenderer
 {
-	[WorldSystemFilter( WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor )]
+	[WorldSystemFilter(0)]
 	[UpdateInGroup(typeof(InitializationSystemGroup))]
 	public class SegmentInitializationSystem : SystemBase
 	{
@@ -23,9 +23,12 @@ namespace EcsLineRenderer
 		{
 			var renderMesh = Prototypes.renderMesh;
 			var renderBounds = Prototypes.renderBounds;
+			var command = _endSimulationEcbSystem.CreateCommandBuffer();
+
+			#if ENABLE_HYBRID_RENDERER_V2
 			var renderingLayer = new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint) renderMesh.layer } };
 			var lightData = new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } };
-			var command = _endSimulationEcbSystem.CreateCommandBuffer();
+			#endif
 
 			Entities
 				.WithName("add_components_job_shared_segment_material_override_1")
@@ -49,11 +52,13 @@ namespace EcsLineRenderer
 					command.AddComponent<WorldRenderBounds>( entity );
 					command.AddComponent<SegmentAspectRatio>( entity );
 
-					command.AddComponent<AmbientProbeTag>( entity );
-					command.AddComponent<PerInstanceCullingTag>( entity );
-					command.AddComponent<WorldToLocal_Tag>( entity );
+					#if ENABLE_HYBRID_RENDERER_V2
+					// command.AddComponent<AmbientProbeTag>( entity );
+					// command.AddComponent<PerInstanceCullingTag>( entity );
+					// command.AddComponent<WorldToLocal_Tag>( entity );
 					command.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
 					command.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
+					#endif
 				})
 				.WithBurst().ScheduleParallel( Dependency );
 
@@ -79,11 +84,13 @@ namespace EcsLineRenderer
 					command.AddComponent<WorldRenderBounds>( entity );
 					command.AddComponent<SegmentAspectRatio>( entity );
 
-					command.AddComponent<AmbientProbeTag>( entity );
-					command.AddComponent<PerInstanceCullingTag>( entity );
-					command.AddComponent<WorldToLocal_Tag>( entity );
+					#if ENABLE_HYBRID_RENDERER_V2
+					// command.AddComponent<AmbientProbeTag>( entity );
+					// command.AddComponent<PerInstanceCullingTag>( entity );
+					// command.AddComponent<WorldToLocal_Tag>( entity );
 					command.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
 					command.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
+					#endif
 				})
 				.WithBurst().ScheduleParallel( job2 );
 			
