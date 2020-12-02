@@ -24,11 +24,13 @@ namespace EcsLineRenderer
 				,	typeof(WorldRenderBounds)
 				,	ComponentType.ChunkComponent<ChunkWorldRenderBounds>()
 
-				,   typeof(AmbientProbeTag)
-				,   typeof(PerInstanceCullingTag)
-				,   typeof(WorldToLocal_Tag)
+				#if ENABLE_HYBRID_RENDERER_V2
+				// ,   typeof(AmbientProbeTag)
+				// ,   typeof(PerInstanceCullingTag)
+				// ,   typeof(WorldToLocal_Tag)
 				,   typeof(BuiltinMaterialPropertyUnity_RenderingLayer)
 				,   typeof(BuiltinMaterialPropertyUnity_LightData)
+				#endif
 			};
 			segment_component_types = new ComponentTypes( segment_components );
 			

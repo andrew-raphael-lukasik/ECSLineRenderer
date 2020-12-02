@@ -7,7 +7,7 @@ using Unity.Rendering;
 
 namespace EcsLineRenderer
 {
-	[WorldSystemFilter( WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor )]
+	[WorldSystemFilter(0)]
 	[UpdateInGroup( typeof(InitializationSystemGroup) )]
 	[UpdateAfter( typeof(SegmentTransformSystem) )]
 	public class SegmentWorldBoundsSystem : SystemBase

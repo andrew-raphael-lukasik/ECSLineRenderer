@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace EcsLineRenderer
 {
-	[WorldSystemFilter( WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor )]
+	[WorldSystemFilter(0)]
 	[UpdateInGroup( typeof(InitializationSystemGroup) )]
 	public class SegmentTransformSystem : SystemBase
 	{

@@ -2,6 +2,7 @@
 
 using Unity.Mathematics;
 using Unity.Entities;
+using Unity.Collections;
 
 namespace EcsLineRenderer.Samples
 {
@@ -14,18 +15,17 @@ namespace EcsLineRenderer.Samples
 		[SerializeField] float _widthOverride = 0.003f;
 
 		MeshRenderer _meshRenderer = null;
-		Entity[] _entities;
-		EntityManager _commandLR;
+		NativeArray<Entity> _entities;
+		Entity _prefab;
 		const int k_cube_vertices = 12;
 
 
-		void OnEnable ()
+		void Awake ()
 		{
 			_meshRenderer = GetComponent<MeshRenderer>();
 
 			// make sure LR world exists:
 			var worldLR = LineRendererWorld.GetOrCreateWorld();
-			_commandLR = worldLR.EntityManager;
 
 			// initialize segment pool:
 			if( _entities==null || _entities.Length==0 )
@@ -33,33 +33,33 @@ namespace EcsLineRenderer.Samples
 				if( _materialOverride!=null )
 				{
 					if( _widthOverride>0f )
-						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _widthOverride , _materialOverride );
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride , _materialOverride );
 					else
-						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _materialOverride );
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _materialOverride );
 				}
 				else
 				{
 					if( _widthOverride>0f )
-						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , _widthOverride );
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride );
 					else
-						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities );
+						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , out _prefab );
 				}
 			}
 		}
 
-		void OnDisable ()
+		void OnDestroy ()
 		{
-			if( LineRendererWorld.IsCreated )
-				LineRendererWorld.Downsize( ref _entities , 0 );
+			_entities.Dispose();
 		}
 
 		void Update ()
 		{
 			int index = 0;
 			var bounds = _meshRenderer.bounds;
-			LineRendererWorld.Upsize( ref _entities , index+k_cube_vertices );
+			var cmd = LineRendererWorld.CreateCommandBuffer();
+			LineRendererWorld.Upsize( ref _entities , _prefab , index+k_cube_vertices );
 			Plot.Box(
-				command:	_commandLR ,
+				cmd:		cmd ,
 				entities:	 _entities ,
 				index:		ref index ,
 				size:		bounds.size ,

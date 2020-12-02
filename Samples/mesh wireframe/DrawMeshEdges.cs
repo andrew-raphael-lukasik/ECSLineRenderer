@@ -3,6 +3,7 @@ using UnityEngine;
 
 using Unity.Mathematics;
 using Unity.Entities;
+using Unity.Collections;
 
 namespace EcsLineRenderer.Samples
 {
@@ -14,13 +15,14 @@ namespace EcsLineRenderer.Samples
 		[SerializeField] Material _materialOverride = null;
 		[SerializeField] float _widthOverride = 0.003f;
 
-		Entity[] _entities;
+		NativeArray<Entity> _entities;
+		Entity _prefab;
 		EntityManager _commandLR;
 		Vector3[] _vertices = null;
 		int2[] _edges = null;
 
 
-		void OnEnable ()
+		void Awake ()
 		{
 			// create list of edges:
 			var mf = GetComponent<MeshFilter>();
@@ -40,36 +42,35 @@ namespace EcsLineRenderer.Samples
 				if( _materialOverride!=null )
 				{
 					if( _widthOverride>0f )
-						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , _widthOverride , _materialOverride );
+						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride , _materialOverride );
 					else
-						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , _materialOverride );
+						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , out _prefab , _materialOverride );
 				}
 				else
 				{
 					if( _widthOverride>0f )
-						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , _widthOverride );
+						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride );
 					else
-						LineRendererWorld.InstantiatePool( _edges.Length , out _entities );
+						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , out _prefab );
 				}
 			}
 		}
 
-		void OnDisable ()
+		void OnDestroy ()
 		{
-			if( LineRendererWorld.IsCreated )
-				LineRendererWorld.Downsize( ref _entities , 0 );
+			_entities.Dispose();
 		}
 
 		void Update ()
 		{
 			int index = 0;
 			Matrix4x4 matrix = transform.localToWorldMatrix;
-			LineRendererWorld.Upsize( ref _entities , index+_edges.Length );
+			LineRendererWorld.Upsize( ref _entities , _prefab , index+_edges.Length );
 			for( int i=0 ; i<_edges.Length ; i++ )
 			{
 				Entity entity = _entities[index++];
 				int2 edgeIndices = _edges[i];
-				_commandLR.SetComponentData( entity , new Segment {
+				_commandLR.SetComponentData( entity , new Segment{
 						start	= matrix.MultiplyPoint( _vertices[edgeIndices.x] ) ,
 						end		= matrix.MultiplyPoint( _vertices[edgeIndices.y] )
 				} );

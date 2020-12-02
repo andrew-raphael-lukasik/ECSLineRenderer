@@ -9,6 +9,7 @@ using Unity.Transforms;
 using Unity.Collections;
 using Unity.Collections.LowLevel;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 
 namespace EcsLineRenderer
 {
@@ -21,14 +22,39 @@ namespace EcsLineRenderer
 
 		public static bool IsCreated => _world!=null && _world.IsCreated;
 
-		static Entity _segmentPrefab = Entity.Null;
 		static EntityArchetype _segmentArchetype = default(EntityArchetype);
+		static Entity _defaultPrefab;
+
+		public static EndSimulationEntityCommandBufferSystem CommandBufferSystem { get; private set; }
+		public static EntityCommandBuffer CreateCommandBuffer () => CommandBufferSystem.CreateCommandBuffer();
+		public static void AddCommandBufferDependency ( JobHandle producerJob ) => CommandBufferSystem.AddJobHandleForProducer( producerJob );
 
 
 		public static World GetOrCreateWorld ()
 		{
 			if( IsCreated ) return _world;
-			return _world = CreateNewDedicatedRenderingWorld( k_world_name );
+			_world = CreateNewDedicatedRenderingWorld( k_world_name );
+
+			{
+				var command = _world.EntityManager;
+				_defaultPrefab = command.CreateEntity( GetSegmentArchetype() );
+				command.SetComponentData<Segment>( _defaultPrefab , Prototypes.segment );
+				command.SetComponentData<SegmentWidth>( _defaultPrefab , Prototypes.segmentWidth );
+				command.SetComponentData<SegmentAspectRatio>( _defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
+				command.AddComponentData<RenderBounds>( _defaultPrefab , Prototypes.renderBounds );
+				command.AddComponentData<LocalToWorld>( _defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
+				var renderMesh = Prototypes.renderMesh;
+				command.SetSharedComponentData<RenderMesh>( _defaultPrefab , renderMesh );
+				
+				#if ENABLE_HYBRID_RENDERER_V2
+				command.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
+				command.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
+				#endif
+			}
+
+			CommandBufferSystem = _world.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+			
+			return _world;
 		}
 		
 		public static World GetWorld ()
@@ -49,28 +75,7 @@ namespace EcsLineRenderer
 		public static Entity GetSegmentPrefabCopy ()
 		{
 			var command = GetEntityManager();
-			if( !command.Exists(_segmentPrefab) )
-			{
-				_segmentPrefab = command.CreateEntity( GetSegmentArchetype() );
-				command.SetComponentData<Segment>( _segmentPrefab , Prototypes.segment );
-				command.SetComponentData<SegmentWidth>( _segmentPrefab , Prototypes.segmentWidth );
-				command.SetComponentData<SegmentAspectRatio>( _segmentPrefab , new SegmentAspectRatio{
-					Value = 1f
-				} );
-				command.AddComponentData<RenderBounds>( _segmentPrefab , Prototypes.renderBounds );
-				command.AddComponentData<LocalToWorld>( _segmentPrefab , new LocalToWorld {
-					Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} )
-				});
-				var renderMesh = Prototypes.renderMesh;
-				command.SetSharedComponentData<RenderMesh>( _segmentPrefab , renderMesh );
-				command.SetComponentData( _segmentPrefab ,
-					new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } }
-				);
-				command.SetComponentData( _segmentPrefab ,
-					new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } }
-				);
-			}
-			var copy = command.Instantiate( _segmentPrefab );
+			Entity copy = command.Instantiate( _defaultPrefab );
 			command.AddComponent<Prefab>( copy );
 			return copy;
 		}
@@ -96,39 +101,35 @@ namespace EcsLineRenderer
 		public static World CreateNewDedicatedRenderingWorld ( string name )
 		{
 			var world = new World( name );
+			var systems = new System.Type[]
 			{
-				var systems = new System.Type[]
-				{
-						typeof(HybridRendererSystem)
-					
-					// fixes: "Internal: deleting an allocation that is older than its permitted lifetime of 4 frames (age = 15)"
-					,	typeof(EndSimulationEntityCommandBufferSystem)
-					
-					,	typeof(SegmentInitializationSystem)
-					,	typeof(SegmentTransformSystem)
-					,	typeof(SegmentWorldBoundsSystem)
-					,	typeof(CreateSegmentsSystem)
-				};
-				DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( world , systems );
-				ScriptBehaviourUpdateOrder.AddWorldToCurrentPlayerLoop( world );
+					typeof(HybridRendererSystem)
 				
-				// var defaultSystems = DefaultWorldInitialization.GetAllSystems( WorldSystemFilterFlags.Default );
-				// DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( world , defaultSystems );
-				// // EntitySceneOptimization.Optimize( world );// what's this for?
-				// ScriptBehaviourUpdateOrder.AddWorldToCurrentPlayerLoop( world );
-			}
+				// fixes: "Internal: deleting an allocation that is older than its permitted lifetime of 4 frames (age = 15)"
+				,	typeof(EndSimulationEntityCommandBufferSystem)
+				
+				,	typeof(SegmentInitializationSystem)
+				,	typeof(SegmentTransformSystem)
+				,	typeof(SegmentWorldBoundsSystem)
+				,	typeof(CreateSegmentsSystem)
+			};
+			DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( world , systems );
+			ScriptBehaviourUpdateOrder.AddWorldToCurrentPlayerLoop( world );
 			return world;
 		}
 
 
-		public static void InstantiatePool ( int length , out NativeArray<Entity> entities ) => InstantiatePool( length , out entities , Prototypes.k_defaul_segment_width , Internal.ResourceProvider.default_material );
-		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , float width ) => InstantiatePool( length , out entities , width , Internal.ResourceProvider.default_material );
-		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , Material material ) => InstantiatePool( length , out entities , Prototypes.k_defaul_segment_width , material );
-		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , float width , Material material )
+		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab )
+						=> InstantiatePool( length , out entities , out prefab , Prototypes.k_defaul_segment_width , Internal.ResourceProvider.default_material );
+		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width )
+						=> InstantiatePool( length , out entities , out prefab , width , Internal.ResourceProvider.default_material );
+		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , Material material )
+						=> InstantiatePool( length , out entities , out prefab , Prototypes.k_defaul_segment_width , material );
+		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width , Material material )
 		{
 			GetOrCreateWorld();// make sure world exists
 			var command = GetEntityManager();
-			var prefab = GetSegmentPrefabCopy();
+			prefab = GetSegmentPrefabCopy();
 			{
 				if( material!=null )
 				{
@@ -140,133 +141,97 @@ namespace EcsLineRenderer
 					}
 				}
 				else Debug.LogError($"material is null");
-
 				command.SetComponentData( prefab , new SegmentWidth{ Value = (half)width } );
 			}
-			entities = command.Instantiate( srcEntity:prefab , instanceCount:length , allocator:Allocator.Temp );
-			command.DestroyEntity( prefab );
-		}
-		public static void InstantiatePool ( int length , out Entity[] entities ) => InstantiatePool( length , out entities , Prototypes.k_defaul_segment_width , Internal.ResourceProvider.default_material );
-		public static void InstantiatePool ( int length , out Entity[] entities , float width ) => InstantiatePool( length , out entities , width , Internal.ResourceProvider.default_material );
-		public static void InstantiatePool ( int length , out Entity[] entities , Material material ) => InstantiatePool( length , out entities , Prototypes.k_defaul_segment_width , material );
-		public static void InstantiatePool ( int length , out Entity[] entities , float width , Material material )
-		{
-			InstantiatePool( length , out NativeArray<Entity> instances , width , material );
-			entities = instances.ToArray();
-			instances.Dispose();
-		}
-		public static void InstantiatePool ( Entity[] entities ) => InstantiatePool( entities , Prototypes.k_defaul_segment_width , Internal.ResourceProvider.default_material );
-		public static void InstantiatePool ( Entity[] entities , float width ) => InstantiatePool( entities , width , Internal.ResourceProvider.default_material );
-		public static void InstantiatePool ( Entity[] entities , Material material ) => InstantiatePool( entities , Prototypes.k_defaul_segment_width , material );
-		public static void InstantiatePool ( Entity[] entities , float width , Material material )
-		{
-			InstantiatePool( entities.Length , out NativeArray<Entity> instances , width , material );
-			entities = instances.ToArray();
-			instances.Dispose();
+			entities = command.Instantiate( srcEntity:prefab , instanceCount:length , allocator:Allocator.Persistent );
 		}
 
-		/// Upsizes pool length when it's < minLength
-		public static void Upsize ( NativeArray<Entity> entities , int minLength )
+
+		/// <summary> Resizes pool length ONLY when it's != requestedLength </summary>
+		public static void Resize ( ref NativeArray<Entity> entities , Entity prefab , int requestedLength )
+		{
+			Assert.IsTrue( entities.IsCreated );
+			int length = entities.Length;
+			if( length != requestedLength )
+			{
+				if( length < requestedLength ) Upsize( ref entities , prefab , requestedLength );
+				else if( length > requestedLength ) Downsize( ref entities , requestedLength );
+			}
+		}
+		
+
+		/// <summary> Upsizes pool length when it's < minLength </summary>
+		public static void Upsize ( ref NativeArray<Entity> entities , Entity prefab , int minLength )
 		{
 			Assert.IsTrue( entities.IsCreated );
 			int length = entities.Length;
 			if( length < minLength )
 			{
 				int difference = minLength - length;
+
 				#if UNITY_EDITOR
 				Debug.Log($"↑ upsizing pool (length) {length} < {minLength} (minLength)");
 				#endif
 
 				var command = GetEntityManager();
-				NativeArray<Entity> newEntities;
-				if( entities!=null && length!=0 )
-				{
-					var prefab = entities[0];
-					newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
-				}
-				else
-				{
-					var prefab = GetSegmentPrefabCopy();
-					newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
-					command.DestroyEntity( prefab );
-				}
-				var resizedEntities = new NativeArray<Entity>( minLength , Allocator.Persistent , NativeArrayOptions.UninitializedMemory );
-				NativeArray<Entity>.Copy( src:entities , dst:resizedEntities );
-				NativeArray<Entity>.Copy(
-					src:		newEntities ,
-					srcIndex:	0 ,
-					dst:		resizedEntities ,
-					dstIndex:	length ,
-					length:		newEntities.Length
-				);
+				NativeArray<Entity> newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
+				var resizedArray = new NativeArray<Entity>( minLength , Allocator.Persistent , NativeArrayOptions.UninitializedMemory );
+				NativeArray<Entity>.Copy( src:entities , srcIndex:0 , dst:resizedArray , dstIndex:0 , length:length );
+				NativeArray<Entity>.Copy( src:newEntities , srcIndex:0 , dst:resizedArray , dstIndex:length , length:difference );
 				entities.Dispose();
 				newEntities.Dispose();
-				entities = resizedEntities;
-			}
-		}
-		/// Upsizes pool length when it's < minLength
-		public static void Upsize ( ref Entity[] entities , int minLength )
-		{
-			Assert.IsNotNull( entities );
-			int length = entities.Length;
-			if( length < minLength )
-			{
-				int difference = minLength - length;
-				#if UNITY_EDITOR
-				Debug.Log($"↑ upsizing pool (length) {length} < {minLength} (minLength)");
-				#endif
-
-				var command = GetEntityManager();
-				NativeArray<Entity> newEntities;
-				if( entities!=null && length!=0 )
-				{
-					var prefab = entities[0];
-					newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
-				}
-				else
-				{
-					var prefab = GetSegmentPrefabCopy();
-					newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
-					command.DestroyEntity( prefab );
-				}
-				Entity[] newEntitiesArray = newEntities.ToArray();
-				newEntities.Dispose();
-				System.Array.Resize( ref entities , minLength );
-				System.Array.Copy(
-					sourceArray:		newEntitiesArray ,
-					sourceIndex:		0 ,
-					destinationArray:	entities ,
-					destinationIndex:	length ,
-					length:				newEntitiesArray.Length
-				);
+				entities = resizedArray;
 			}
 		}
 
-		/// Downsizes pool length when it's > maxLength
-		public static void Downsize ( ref Entity[] entities , int maxLength )
+		/// <summary> Downsizes pool length when it's > maxLength </summary>
+		public static void Downsize ( ref NativeArray<Entity> entities , int maxLength )
 		{
-			Assert.IsNotNull( entities , $"{nameof(entities)} array is null" );
+			if( !entities.IsCreated ) Debug.LogError( $"{nameof(entities)}.IsCreated returns false" );
+			Assert.IsTrue( entities.IsCreated , $"{nameof(entities)}.IsCreated returns false" );
 			int length = entities.Length;
-			if( length > maxLength )
+			if( length>maxLength )
 			{
 				#if UNITY_EDITOR
 				Debug.Log($"↓ downsizing pool (length) {length} > {maxLength} (maxLength)");
 				#endif
 
-				var command = GetEntityManager();
-				for( int i=maxLength ; i<length ; i++  )
-					command.DestroyEntity( entities[i] );
+				DestroyNow( entities.Slice( maxLength , length-maxLength ) );
 
-				System.Array.Resize( ref entities , maxLength );
+				var oldArray = entities;
+				var resizedArray = new NativeArray<Entity>( length:maxLength , Allocator.Persistent );
+				NativeArray<Entity>.Copy( src:oldArray , srcIndex:0 , dst:resizedArray , dstIndex:0 , length:maxLength );
+				entities = resizedArray;
+				oldArray.Dispose();
 			}
 		}
 
-		public static void DestroyEntities ( Entity[] entities )
+
+		/// <summary> Schedules DestroyEntity commands for all entities in the collection. </summary>
+		public static void Destroy ( NativeArray<Entity> entities , EntityCommandBuffer command )
 		{
-			Assert.IsNotNull( entities );
-			int length = entities.Length;
+			if( !entities.IsCreated ) return;
+			Destroy( entities.Slice() , command );
+		}
+		/// <summary> Schedules DestroyEntity commands for all entities in the collection. </summary>
+		public static void Destroy ( NativeSlice<Entity> entities , EntityCommandBuffer command )
+		{
+			for( int i=0 ; i<entities.Length ; i++ )
+				command.DestroyEntity( entities[i] );
+		}
+
+
+		/// <summary> Destroys all entities in the collection immediately. </summary>
+		public static void DestroyNow ( NativeArray<Entity> entities )
+		{
+			if( !entities.IsCreated ) return;
+			DestroyNow( entities.Slice() );
+		}
+		/// <summary> Destroys all entities in the collection immediately. </summary>
+		public static void DestroyNow ( NativeSlice<Entity> entities )
+		{
 			var command = GetEntityManager();
-			for( int i=0 ; i<length ; i++  )
+			for( int i=0 ; i<entities.Length ; i++ )
 				command.DestroyEntity( entities[i] );
 		}
 
