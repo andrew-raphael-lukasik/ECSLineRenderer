@@ -13,6 +13,13 @@ namespace EcsLineRenderer
 
 		static Prototypes ()
 		{
+			worldSystems = new System.Type[]{
+					typeof(SegmentInitializationSystem)
+				,	typeof(SegmentTransformSystem)
+				,	typeof(SegmentWorldBoundsSystem)
+				,	typeof(CreateSegmentsSystem)
+			};
+
 			segment_components = new ComponentType[]{
 					typeof(Segment)
 				,	typeof(SegmentWidth)
@@ -24,18 +31,22 @@ namespace EcsLineRenderer
 				,	typeof(WorldRenderBounds)
 				,	ComponentType.ChunkComponent<ChunkWorldRenderBounds>()
 
+				,	typeof(MaterialColor)
+
 				#if ENABLE_HYBRID_RENDERER_V2
 				// ,   typeof(AmbientProbeTag)
 				// ,   typeof(PerInstanceCullingTag)
-				// ,   typeof(WorldToLocal_Tag)
+				,   typeof(WorldToLocal_Tag)
 				,   typeof(BuiltinMaterialPropertyUnity_RenderingLayer)
 				,   typeof(BuiltinMaterialPropertyUnity_LightData)
 				#endif
 			};
 			segment_component_types = new ComponentTypes( segment_components );
 			
-			segment_prefab_components = new ComponentType[]{ typeof(Prefab) }
-				.Concat( segment_components ).ToArray();
+			segment_prefab_components =
+				new ComponentType[]{ typeof(Prefab) }
+				.Concat( segment_components )
+				.ToArray();
 			segment_prefab_components_types = new ComponentTypes( segment_prefab_components );
 		}
 
@@ -67,6 +78,8 @@ namespace EcsLineRenderer
 
 		public static readonly ComponentTypes segment_prefab_components_types;
 		public static readonly ComponentType[] segment_prefab_components;
+
+		public static readonly System.Type[] worldSystems;
 
 	}
 }

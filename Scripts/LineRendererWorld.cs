@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -17,9 +18,7 @@ namespace EcsLineRenderer
 	{
 
 
-		static World _world = null;
-		static readonly string k_world_name = nameof(EcsLineRenderer);
-
+		static World _world;
 		public static bool IsCreated => _world!=null && _world.IsCreated;
 
 		static EntityArchetype _segmentArchetype = default(EntityArchetype);
@@ -43,8 +42,10 @@ namespace EcsLineRenderer
 				command.SetComponentData<SegmentAspectRatio>( _defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
 				command.AddComponentData<RenderBounds>( _defaultPrefab , Prototypes.renderBounds );
 				command.AddComponentData<LocalToWorld>( _defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
+				
 				var renderMesh = Prototypes.renderMesh;
 				command.SetSharedComponentData<RenderMesh>( _defaultPrefab , renderMesh );
+				command.SetComponentData<MaterialColor>( _defaultPrefab , new MaterialColor{ Value=new float4{x=1,y=1,z=1,w=1} } );
 				
 				#if ENABLE_HYBRID_RENDERER_V2
 				command.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
@@ -94,7 +95,7 @@ namespace EcsLineRenderer
 		static void _WorldExistsWarningCheck ()
 		{
 			if( _world==null || !_world.IsCreated )
-				Debug.LogWarning($"{k_world_name} does not exists yet. Call `{nameof(GetOrCreateWorld)}()` first.");
+				Debug.LogWarning($"{nameof(EcsLineRenderer)}'s world does not exists yet. Call `{nameof(GetOrCreateWorld)}()` first.");
 		}
 
 
@@ -102,17 +103,14 @@ namespace EcsLineRenderer
 		{
 			var world = new World( name );
 			var systems = new System.Type[]
-			{
-					typeof(HybridRendererSystem)
-				
-				// fixes: "Internal: deleting an allocation that is older than its permitted lifetime of 4 frames (age = 15)"
-				,	typeof(EndSimulationEntityCommandBufferSystem)
-				
-				,	typeof(SegmentInitializationSystem)
-				,	typeof(SegmentTransformSystem)
-				,	typeof(SegmentWorldBoundsSystem)
-				,	typeof(CreateSegmentsSystem)
-			};
+				{
+						typeof(HybridRendererSystem)
+					
+						// fixes: "Internal: deleting an allocation that is older than its permitted lifetime of 4 frames (age = 15)"
+					,	typeof(EndSimulationEntityCommandBufferSystem)
+				}
+				.Concat( Prototypes.worldSystems )
+				.ToArray();
 			DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( world , systems );
 			ScriptBehaviourUpdateOrder.AddWorldToCurrentPlayerLoop( world );
 			return world;
