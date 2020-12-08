@@ -35,21 +35,21 @@ namespace EcsLineRenderer
 			_world = CreateNewDedicatedRenderingWorld( k_world_name );
 
 			{
-				var command = _world.EntityManager;
-				_defaultPrefab = command.CreateEntity( GetSegmentArchetype() );
-				command.SetComponentData<Segment>( _defaultPrefab , Prototypes.segment );
-				command.SetComponentData<SegmentWidth>( _defaultPrefab , Prototypes.segmentWidth );
-				command.SetComponentData<SegmentAspectRatio>( _defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
-				command.AddComponentData<RenderBounds>( _defaultPrefab , Prototypes.renderBounds );
-				command.AddComponentData<LocalToWorld>( _defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
+				var commander = _world.EntityManager;
+				_defaultPrefab = commander.CreateEntity( GetSegmentArchetype() );
+				commander.SetComponentData<Segment>( _defaultPrefab , Prototypes.segment );
+				commander.SetComponentData<SegmentWidth>( _defaultPrefab , Prototypes.segmentWidth );
+				commander.SetComponentData<SegmentAspectRatio>( _defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
+				commander.AddComponentData<RenderBounds>( _defaultPrefab , Prototypes.renderBounds );
+				commander.AddComponentData<LocalToWorld>( _defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
 				
 				var renderMesh = Prototypes.renderMesh;
-				command.SetSharedComponentData<RenderMesh>( _defaultPrefab , renderMesh );
-				command.SetComponentData<MaterialColor>( _defaultPrefab , new MaterialColor{ Value=new float4{x=1,y=1,z=1,w=1} } );
+				commander.SetSharedComponentData<RenderMesh>( _defaultPrefab , renderMesh );
+				commander.SetComponentData<MaterialColor>( _defaultPrefab , new MaterialColor{ Value=new float4{x=1,y=1,z=1,w=1} } );
 				
 				#if ENABLE_HYBRID_RENDERER_V2
-				command.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
-				command.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
+				commander.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
+				commander.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
 				#endif
 			}
 
@@ -75,19 +75,19 @@ namespace EcsLineRenderer
 
 		public static Entity GetSegmentPrefabCopy ()
 		{
-			var command = GetEntityManager();
-			Entity copy = command.Instantiate( _defaultPrefab );
-			command.AddComponent<Prefab>( copy );
+			var commander = GetEntityManager();
+			Entity copy = commander.Instantiate( _defaultPrefab );
+			commander.AddComponent<Prefab>( copy );
 			return copy;
 		}
 
 		public static EntityArchetype GetSegmentArchetype ()
 		{
-			var command = GetEntityManager();
+			var commander = GetEntityManager();
 			if( _segmentArchetype.Valid )
 				return _segmentArchetype;
 			
-			_segmentArchetype = command.CreateArchetype( Prototypes.segment_prefab_components );
+			_segmentArchetype = commander.CreateArchetype( Prototypes.segment_prefab_components );
 			return _segmentArchetype;
 		}
 
@@ -126,22 +126,22 @@ namespace EcsLineRenderer
 		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width , Material material )
 		{
 			GetOrCreateWorld();// make sure world exists
-			var command = GetEntityManager();
+			var commander = GetEntityManager();
 			prefab = GetSegmentPrefabCopy();
 			{
 				if( material!=null )
 				{
-					var renderMesh = command.GetSharedComponentData<RenderMesh>( prefab );
+					var renderMesh = commander.GetSharedComponentData<RenderMesh>( prefab );
 					if( renderMesh.material!=material )
 					{
 						renderMesh.material = material;
-						command.SetSharedComponentData( prefab , renderMesh );
+						commander.SetSharedComponentData( prefab , renderMesh );
 					}
 				}
 				else Debug.LogError($"material is null");
-				command.SetComponentData( prefab , new SegmentWidth{ Value = (half)width } );
+				commander.SetComponentData( prefab , new SegmentWidth{ Value = (half)width } );
 			}
-			entities = command.Instantiate( srcEntity:prefab , instanceCount:length , allocator:Allocator.Persistent );
+			entities = commander.Instantiate( srcEntity:prefab , instanceCount:length , allocator:Allocator.Persistent );
 		}
 
 
@@ -171,8 +171,8 @@ namespace EcsLineRenderer
 				Debug.Log($"↑ upsizing pool (length) {length} < {minLength} (minLength)");
 				#endif
 
-				var command = GetEntityManager();
-				NativeArray<Entity> newEntities = command.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
+				var commander = GetEntityManager();
+				NativeArray<Entity> newEntities = commander.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
 				var resizedArray = new NativeArray<Entity>( minLength , Allocator.Persistent , NativeArrayOptions.UninitializedMemory );
 				NativeArray<Entity>.Copy( src:entities , srcIndex:0 , dst:resizedArray , dstIndex:0 , length:length );
 				NativeArray<Entity>.Copy( src:newEntities , srcIndex:0 , dst:resizedArray , dstIndex:length , length:difference );
@@ -228,9 +228,9 @@ namespace EcsLineRenderer
 		/// <summary> Destroys all entities in the collection immediately. </summary>
 		public static void DestroyNow ( NativeSlice<Entity> entities )
 		{
-			var command = GetEntityManager();
+			var commander = GetEntityManager();
 			for( int i=0 ; i<entities.Length ; i++ )
-				command.DestroyEntity( entities[i] );
+				commander.DestroyEntity( entities[i] );
 		}
 
 

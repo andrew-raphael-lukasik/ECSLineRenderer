@@ -31,7 +31,7 @@ namespace EcsLineRenderer
 		{
 			var segmentArchetype = _segmentArchetype;
 			var defaultSegmentMaterial = Internal.ResourceProvider.default_segment_material;
-			var command = _endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
+			var commands = _endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
 			Entities
 				.WithName("add_components_job")
@@ -42,21 +42,21 @@ namespace EcsLineRenderer
 					for( int i=0 ; i<len ; i++ )
 					{
 						var seg = buffer[i];
-						var instance = command.CreateEntity( entityInQueryIndex , segmentArchetype );
-						command.SetComponent( entityInQueryIndex , instance , new Segment{
+						var instance = commands.CreateEntity( entityInQueryIndex , segmentArchetype );
+						commands.SetComponent( entityInQueryIndex , instance , new Segment{
 							start	= seg.start ,
 							end		= seg.end
 						} );
-						command.SetComponent( entityInQueryIndex , instance , new SegmentWidth{
+						commands.SetComponent( entityInQueryIndex , instance , new SegmentWidth{
 							Value	= seg.width
 						} );
-						command.SetComponent( entityInQueryIndex , instance , defaultSegmentMaterial );
-						command.SetComponent( entityInQueryIndex , instance , new MaterialColor{
+						commands.SetComponent( entityInQueryIndex , instance , defaultSegmentMaterial );
+						commands.SetComponent( entityInQueryIndex , instance , new MaterialColor{
 							Value = new float4{ x=seg.color.r , y=seg.color.g , z=seg.color.b , w=seg.color.a }
 						} );
 					}
 
-					command.DestroyEntity( entityInQueryIndex , entity );
+					commands.DestroyEntity( entityInQueryIndex , entity );
 				} )
 				.WithBurst().ScheduleParallel();
 
@@ -68,21 +68,21 @@ namespace EcsLineRenderer
 					for( int i=0 ; i<len ; i++ )
 					{
 						var seg = buffer[i];
-						var instance = command.CreateEntity( entityInQueryIndex , segmentArchetype );
-						command.SetComponent( entityInQueryIndex , instance , new Segment{
+						var instance = commands.CreateEntity( entityInQueryIndex , segmentArchetype );
+						commands.SetComponent( entityInQueryIndex , instance , new Segment{
 							start	= seg.start ,
 							end		= seg.end
 						} );
-						command.SetComponent( entityInQueryIndex , instance , new SegmentWidth{
+						commands.SetComponent( entityInQueryIndex , instance , new SegmentWidth{
 							Value	= seg.width
 						} );
-						command.SetComponent( entityInQueryIndex , instance , material );
-						command.SetComponent( entityInQueryIndex , instance , new MaterialColor{
+						commands.SetComponent( entityInQueryIndex , instance , material );
+						commands.SetComponent( entityInQueryIndex , instance , new MaterialColor{
 							Value = new float4{ x=seg.color.r , y=seg.color.g , z=seg.color.b , w=seg.color.a }
 						} );
 					}
 
-					command.DestroyEntity( entityInQueryIndex , entity );
+					commands.DestroyEntity( entityInQueryIndex , entity );
 				} )
 				.WithBurst().ScheduleParallel();
 			

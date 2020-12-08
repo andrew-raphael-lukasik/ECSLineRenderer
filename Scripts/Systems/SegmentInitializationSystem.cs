@@ -23,7 +23,7 @@ namespace EcsLineRenderer
 		{
 			var renderMesh = Prototypes.renderMesh;
 			var renderBounds = Prototypes.renderBounds;
-			var command = _endSimulationEcbSystem.CreateCommandBuffer();
+			var commands = _endSimulationEcbSystem.CreateCommandBuffer();
 
 			#if ENABLE_HYBRID_RENDERER_V2
 			var renderingLayer = new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint) renderMesh.layer } };
@@ -37,7 +37,7 @@ namespace EcsLineRenderer
 				.ForEach( ( in Entity entity , in SegmentSharedMaterialOverride material ) =>
 				{
 					renderMesh.material = material.Value;
-					command.AddSharedComponent( entity , renderMesh );
+					commands.AddSharedComponent( entity , renderMesh );
 				})
 				.WithoutBurst().Run();
 			JobHandle job1 = Entities
@@ -46,18 +46,18 @@ namespace EcsLineRenderer
 				.WithAll<SegmentSharedMaterialOverride,Segment>()
 				.ForEach( ( in Entity entity ) =>
 				{
-					command.RemoveComponent<SegmentSharedMaterialOverride>( entity );
-					command.AddComponent<LocalToWorld>( entity );
-					command.AddComponent<RenderBounds>( entity , renderBounds );
-					command.AddComponent<WorldRenderBounds>( entity );
-					command.AddComponent<SegmentAspectRatio>( entity );
+					commands.RemoveComponent<SegmentSharedMaterialOverride>( entity );
+					commands.AddComponent<LocalToWorld>( entity );
+					commands.AddComponent<RenderBounds>( entity , renderBounds );
+					commands.AddComponent<WorldRenderBounds>( entity );
+					commands.AddComponent<SegmentAspectRatio>( entity );
 
 					#if ENABLE_HYBRID_RENDERER_V2
-					// command.AddComponent<AmbientProbeTag>( entity );
-					// command.AddComponent<PerInstanceCullingTag>( entity );
-					// command.AddComponent<WorldToLocal_Tag>( entity );
-					command.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
-					command.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
+					// commands.AddComponent<AmbientProbeTag>( entity );
+					// commands.AddComponent<PerInstanceCullingTag>( entity );
+					// commands.AddComponent<WorldToLocal_Tag>( entity );
+					commands.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
+					commands.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
 					#endif
 				})
 				.WithBurst().ScheduleParallel( Dependency );
@@ -69,7 +69,7 @@ namespace EcsLineRenderer
 				.ForEach( ( in Entity entity , in SegmentMaterialOverride material ) =>
 				{
 					renderMesh.material = material;
-					command.AddSharedComponent( entity , renderMesh );
+					commands.AddSharedComponent( entity , renderMesh );
 				})
 				.WithoutBurst().Schedule( Dependency );
 			job2 = Entities
@@ -78,18 +78,18 @@ namespace EcsLineRenderer
 				.WithAll<SegmentMaterialOverride,Segment>()
 				.ForEach( ( in Entity entity ) =>
 				{
-					command.RemoveComponent<SegmentMaterialOverride>( entity );
-					command.AddComponent<LocalToWorld>( entity );
-					command.AddComponent<RenderBounds>( entity , renderBounds );
-					command.AddComponent<WorldRenderBounds>( entity );
-					command.AddComponent<SegmentAspectRatio>( entity );
+					commands.RemoveComponent<SegmentMaterialOverride>( entity );
+					commands.AddComponent<LocalToWorld>( entity );
+					commands.AddComponent<RenderBounds>( entity , renderBounds );
+					commands.AddComponent<WorldRenderBounds>( entity );
+					commands.AddComponent<SegmentAspectRatio>( entity );
 
 					#if ENABLE_HYBRID_RENDERER_V2
 					// command.AddComponent<AmbientProbeTag>( entity );
 					// command.AddComponent<PerInstanceCullingTag>( entity );
 					// command.AddComponent<WorldToLocal_Tag>( entity );
-					command.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
-					command.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
+					commands.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
+					commands.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
 					#endif
 				})
 				.WithBurst().ScheduleParallel( job2 );

@@ -56,10 +56,10 @@ namespace EcsLineRenderer.Samples
 		{
 			int index = 0;
 			var bounds = _meshRenderer.bounds;
-			var cmd = LineRendererWorld.CreateCommandBuffer();
+			var commands = LineRendererWorld.CreateCommandBuffer();
 			LineRendererWorld.Upsize( ref _entities , _prefab , index+k_cube_vertices );
 			Plot.Box(
-				cmd:		cmd ,
+				cmd:		commands ,
 				entities:	 _entities ,
 				index:		ref index ,
 				size:		bounds.size ,
