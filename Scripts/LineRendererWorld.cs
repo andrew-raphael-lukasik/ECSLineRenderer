@@ -54,7 +54,6 @@ namespace EcsLineRenderer
 			}
 
 			CommandBufferSystem = _world.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-			
 			return _world;
 		}
 		
@@ -206,16 +205,16 @@ namespace EcsLineRenderer
 
 
 		/// <summary> Schedules DestroyEntity commands for all entities in the collection. </summary>
-		public static void Destroy ( NativeArray<Entity> entities , EntityCommandBuffer command )
+		public static void Destroy ( NativeArray<Entity> entities , EntityCommandBuffer commands )
 		{
 			if( !entities.IsCreated ) return;
-			Destroy( entities.Slice() , command );
+			Destroy( entities.Slice() , commands );
 		}
 		/// <summary> Schedules DestroyEntity commands for all entities in the collection. </summary>
-		public static void Destroy ( NativeSlice<Entity> entities , EntityCommandBuffer command )
+		public static void Destroy ( NativeSlice<Entity> entities , EntityCommandBuffer commands )
 		{
 			for( int i=0 ; i<entities.Length ; i++ )
-				command.DestroyEntity( entities[i] );
+				commands.DestroyEntity( entities[i] );
 		}
 
 

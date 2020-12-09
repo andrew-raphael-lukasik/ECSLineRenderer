@@ -85,9 +85,9 @@ namespace EcsLineRenderer
 					commands.AddComponent<SegmentAspectRatio>( entity );
 
 					#if ENABLE_HYBRID_RENDERER_V2
-					// command.AddComponent<AmbientProbeTag>( entity );
-					// command.AddComponent<PerInstanceCullingTag>( entity );
-					// command.AddComponent<WorldToLocal_Tag>( entity );
+					// commands.AddComponent<AmbientProbeTag>( entity );
+					// commands.AddComponent<PerInstanceCullingTag>( entity );
+					// commands.AddComponent<WorldToLocal_Tag>( entity );
 					commands.AddComponent<BuiltinMaterialPropertyUnity_RenderingLayer>( entity , renderingLayer );
 					commands.AddComponent<BuiltinMaterialPropertyUnity_LightData>( entity , lightData );
 					#endif

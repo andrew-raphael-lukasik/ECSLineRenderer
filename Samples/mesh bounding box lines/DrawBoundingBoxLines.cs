@@ -59,8 +59,8 @@ namespace EcsLineRenderer.Samples
 			var commands = LineRendererWorld.CreateCommandBuffer();
 			LineRendererWorld.Upsize( ref _entities , _prefab , index+k_cube_vertices );
 			Plot.Box(
-				cmd:		commands ,
-				entities:	 _entities ,
+				commands:	commands ,
+				entities:	_entities ,
 				index:		ref index ,
 				size:		bounds.size ,
 				pos:		bounds.center ,

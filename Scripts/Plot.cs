@@ -9,7 +9,7 @@ namespace EcsLineRenderer
 		
 
 		public static void Ellipse (
-			EntityCommandBuffer cmd , NativeSlice<Entity> entities , ref int index ,
+			EntityCommandBuffer commands , NativeSlice<Entity> entities , ref int index ,
 			float rx , float ry ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
@@ -25,7 +25,7 @@ namespace EcsLineRenderer
 				float3 v1 = math.mul( rot , ( new float3{ x=math.cos(f1)*rx , y=math.sin(f1)*ry } ) );
 				int e = index++;
 				if( !(e<length) ) continue;
-				cmd.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
 			}
 
 			float a = math.max(rx,ry);
@@ -39,7 +39,7 @@ namespace EcsLineRenderer
 		}
 
 		public static void EllipseAtFoci (
-			EntityCommandBuffer cmd , NativeSlice<Entity> entities , ref int index ,
+			EntityCommandBuffer commands , NativeSlice<Entity> entities , ref int index ,
 			float rx , float ry ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
@@ -61,13 +61,13 @@ namespace EcsLineRenderer
 				float3 v1 = math.mul( rot , ( new float3{ x=math.cos(f1)*rx , y=math.sin(f1)*ry } + focus ) );
 				int e = index++;
 				if( !(e<length) ) continue;
-				cmd.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
 			}
 		}
 
 
 		public static void Circle (
-			EntityCommandBuffer cmd , NativeSlice<Entity> entities , ref int index ,
+			EntityCommandBuffer commands , NativeSlice<Entity> entities , ref int index ,
 			float r , float3 pos , quaternion rot ,
 			int numSegments = 128
 		)
@@ -82,13 +82,13 @@ namespace EcsLineRenderer
 				float3 v1 = math.mul( rot , ( new float3{ x=math.cos(f1) , y=math.sin(f1) } * r ) );
 				int e = index++;
 				if( !(e<length) ) continue;
-				cmd.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
 			}
 		}
 
 
 		public static void DashedLine (
-			EntityCommandBuffer cmd ,
+			EntityCommandBuffer commands ,
 			NativeSlice<Entity> entities , ref int index ,
 			float3 start , float3 end , int numDashes
 		)
@@ -99,7 +99,7 @@ namespace EcsLineRenderer
 			{
 				int e = index++;
 				if( !(e<length) ) continue;
-				cmd.SetComponent(  entities[e] , new Segment{
+				commands.SetComponent(  entities[e] , new Segment{
 					start	= math.lerp( start , end , (float)(i) / (float)max ) ,
 					end		= math.lerp( start , end , (float)(i+1) / (float)max )
 				});
@@ -108,7 +108,7 @@ namespace EcsLineRenderer
 
 
 		public static void Arrow (
-			EntityCommandBuffer cmd ,
+			EntityCommandBuffer commands ,
 			NativeSlice<Entity> entities , ref int index ,
 			float2 p1 , float2 p2
 		)
@@ -122,19 +122,19 @@ namespace EcsLineRenderer
 			
 			int e, length = entities.Length;
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{ start=v1 , end=v2 } );
+			commands.SetComponent( entities[e] , new Segment{ start=v1 , end=v2 } );
 
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{ start=v2 , end=v3 } );
+			commands.SetComponent( entities[e] , new Segment{ start=v2 , end=v3 } );
 
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{ start=v3 , end=v4 } );
+			commands.SetComponent( entities[e] , new Segment{ start=v3 , end=v4 } );
 
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{ start=v4 , end=v2 } );
+			commands.SetComponent( entities[e] , new Segment{ start=v4 , end=v2 } );
 		}
 		public static void Arrow (
-			EntityCommandBuffer cmd ,
+			EntityCommandBuffer commands ,
 			NativeSlice<Entity> entities , ref int index ,
 			float3 v1 , float3 v2 , float3 cameraPos
 		)
@@ -146,23 +146,23 @@ namespace EcsLineRenderer
 			
 			int e, length = entities.Length;
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{ start=v1 , end=v2 } );
+			commands.SetComponent( entities[e] , new Segment{ start=v1 , end=v2 } );
 
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{ start=v2 , end=v3 } );
+			commands.SetComponent( entities[e] , new Segment{ start=v2 , end=v3 } );
 
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{ start=v3 , end=v4 } );
+			commands.SetComponent( entities[e] , new Segment{ start=v3 , end=v4 } );
 
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{ start=v4 , end=v2 } );
+			commands.SetComponent( entities[e] , new Segment{ start=v4 , end=v2 } );
 		}
 
 
 		/// <param name="a"> +-y = ( b * math.sqrt( **a**^2 + x^2 ) ) / **a** </param>
 		/// <param name="b"> +-y = ( **b** * math.sqrt( a^2 + x^2 ) ) / a </param>
 		public static void HyperbolaAtFoci (
-			EntityCommandBuffer cmd , NativeSlice<Entity> entities , ref int index ,
+			EntityCommandBuffer commands , NativeSlice<Entity> entities , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
@@ -183,14 +183,14 @@ namespace EcsLineRenderer
 
 				int e = index++;
 				if( !(e<length) ) continue;
-				cmd.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
 			}
 		}
 
 		/// <param name="a"> +-y = ( b * math.sqrt( **a**^2 + x^2 ) ) / **a** </param>
 		/// <param name="b"> +-y = ( **b** * math.sqrt( a^2 + x^2 ) ) / a </param>
 		public static void Hyperbola (
-			EntityCommandBuffer cmd ,
+			EntityCommandBuffer commands ,
 			NativeSlice<Entity> entities , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
@@ -218,23 +218,23 @@ namespace EcsLineRenderer
 				float3 v1 = math.mul(rot,p1);
 
 				if( !((e=index++)<length) ) continue;
-				cmd.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
 
 				float3 v0b = math.mul( rot , p0*fmirror );
 				float3 v1b = math.mul( rot , p1*fmirror );
 
 				if( !((e=index++)<length) ) continue;
-				cmd.SetComponent( entities[e] , new Segment{ start=pos+v0b , end=pos+v1b } );
+				commands.SetComponent( entities[e] , new Segment{ start=pos+v0b , end=pos+v1b } );
 			}
 			
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{
+			commands.SetComponent( entities[e] , new Segment{
 				start	= pos + math.mul( rot , new float3{ x=xmin , y=Asymptote(xmin) } ) ,
 				end		= pos + math.mul( rot , new float3{ x=xmax , y=Asymptote(xmax) } )
 			} );
 
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{
+			commands.SetComponent( entities[e] , new Segment{
 				start	= pos + math.mul( rot , new float3{ x=xmin , y=-Asymptote(xmin) } ) ,
 				end		= pos + math.mul( rot , new float3{ x=xmax , y=-Asymptote(xmax) } )
 			} );
@@ -246,7 +246,7 @@ namespace EcsLineRenderer
 		/// <param name="b"> y = axx + **b**x + c </param>
 		/// <param name="c"> y = axx + bx + **c** </param>
 		public static void Parabola (
-			EntityCommandBuffer cmd ,
+			EntityCommandBuffer commands ,
 			NativeSlice<Entity> entities , ref int index ,
 			float a , float b ,
 			float xmin , float xmax ,
@@ -268,11 +268,11 @@ namespace EcsLineRenderer
 				float3 v1 = math.mul( rot , new float3{ x=x1 , y=a*x1*x1+b*x1+c } );
 
 				if( !((e=index++)<length) ) continue;
-				cmd.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
 			}
 			
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{
+			commands.SetComponent( entities[e] , new Segment{
 				start	= pos + math.mul( rot , new float3{ x=xmin , y=directrix_y } ) ,
 				end		= pos + math.mul( rot , new float3{ x=xmax , y=directrix_y } )
 			} );
@@ -282,7 +282,7 @@ namespace EcsLineRenderer
 		/// <param name="b"> y = axx + **b**x + c </param>
 		/// <param name="c"> y = axx + bx + **c** </param>
 		public static void ParabolaAtFoci (
-			EntityCommandBuffer cmd ,
+			EntityCommandBuffer commands ,
 			NativeSlice<Entity> entities , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
@@ -305,11 +305,11 @@ namespace EcsLineRenderer
 				float3 v1 = math.mul( rot , ( new float3{ x=x1 , y=a*x1*x1+b*x1+c } - focus ) );
 
 				if( !((e=index++)<length) ) continue;
-				cmd.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
 			}
 			
 			if( (e=index++)<length )
-			cmd.SetComponent( entities[e] , new Segment{
+			commands.SetComponent( entities[e] , new Segment{
 				start	= math.mul( rot , new float3{ x=xmin , y=directrix_y } - focus ) + new float3{x=pos.z} ,
 				end		= math.mul( rot , new float3{ x=xmax , y=directrix_y } - focus ) + new float3{x=pos.z}
 			} );
@@ -318,7 +318,7 @@ namespace EcsLineRenderer
 
 		/// <summary> 12 segments </summary>
 		public static void Cube (
-			EntityCommandBuffer cmd ,
+			EntityCommandBuffer commands ,
 			NativeSlice<Entity> entities , ref int index ,
 			float a , float3 pos , quaternion rot
 		)
@@ -334,26 +334,26 @@ namespace EcsLineRenderer
 			float3 T3 = math.mul( rot , new float3{ x=f , y=f , z=f } );
 
 			int e, length = entities.Length;
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+B1 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+B2 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+B3 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+B0 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+B1 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+B2 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+B3 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+B0 } );
 
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+T0 , end=pos+T1 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+T1 , end=pos+T2 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+T2 , end=pos+T3 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+T3 , end=pos+T0 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T0 , end=pos+T1 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T1 , end=pos+T2 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T2 , end=pos+T3 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T3 , end=pos+T0 } );
 
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+T0 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+T1 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+T2 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+T3 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+T0 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+T1 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+T2 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+T3 } );
 		}
 
 
 		/// <summary> 12 segments </summary>
 		public static void Box (
-			EntityCommandBuffer cmd ,
+			EntityCommandBuffer commands ,
 			NativeSlice<Entity> entities , ref int index ,
 			float3 size , float3 pos , quaternion rot
 		)
@@ -369,20 +369,20 @@ namespace EcsLineRenderer
 			float3 T3 = math.mul( rot , new float3{ x=f.x , y=f.y , z=f.z } );
 			
 			int e, length = entities.Length;
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+B1 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+B2 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+B3 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+B0 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+B1 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+B2 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+B3 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+B0 } );
 
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+T0 , end=pos+T1 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+T1 , end=pos+T2 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+T2 , end=pos+T3 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+T3 , end=pos+T0 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T0 , end=pos+T1 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T1 , end=pos+T2 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T2 , end=pos+T3 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T3 , end=pos+T0 } );
 
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+T0 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+T1 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+T2 } );
-			if( (e=index++)<length ) cmd.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+T3 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+T0 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+T1 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+T2 } );
+			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+T3 } );
 		}
 
 
