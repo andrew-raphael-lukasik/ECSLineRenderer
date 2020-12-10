@@ -32,28 +32,28 @@ namespace EcsLineRenderer
 		public static World GetOrCreateWorld ()
 		{
 			if( IsCreated ) return _world;
-			_world = CreateNewDedicatedRenderingWorld( k_world_name );
-
-			{
-				var commander = _world.EntityManager;
-				_defaultPrefab = commander.CreateEntity( GetSegmentArchetype() );
-				commander.SetComponentData<Segment>( _defaultPrefab , Prototypes.segment );
-				commander.SetComponentData<SegmentWidth>( _defaultPrefab , Prototypes.segmentWidth );
-				commander.SetComponentData<SegmentAspectRatio>( _defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
-				commander.AddComponentData<RenderBounds>( _defaultPrefab , Prototypes.renderBounds );
-				commander.AddComponentData<LocalToWorld>( _defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
-				
-				var renderMesh = Prototypes.renderMesh;
-				commander.SetSharedComponentData<RenderMesh>( _defaultPrefab , renderMesh );
-				commander.SetComponentData<MaterialColor>( _defaultPrefab , new MaterialColor{ Value=new float4{x=1,y=1,z=1,w=1} } );
-				
-				#if ENABLE_HYBRID_RENDERER_V2
-				commander.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
-				commander.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
-				#endif
-			}
-
+			// _world = World.DefaultGameObjectInjectionWorld;
+			// DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( _world , Prototypes.worldSystems );
+			_world = CreateNewDedicatedRenderingWorld( nameof(EcsLineRenderer) );
 			CommandBufferSystem = _world.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+			
+			var commander = _world.EntityManager;
+			_defaultPrefab = commander.CreateEntity( GetSegmentArchetype() );
+			commander.SetComponentData<Segment>( _defaultPrefab , Prototypes.segment );
+			commander.SetComponentData<SegmentWidth>( _defaultPrefab , Prototypes.segmentWidth );
+			commander.SetComponentData<SegmentAspectRatio>( _defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
+			commander.AddComponentData<RenderBounds>( _defaultPrefab , Prototypes.renderBounds );
+			commander.AddComponentData<LocalToWorld>( _defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
+			
+			var renderMesh = Prototypes.renderMesh;
+			commander.SetSharedComponentData<RenderMesh>( _defaultPrefab , renderMesh );
+			commander.SetComponentData<MaterialColor>( _defaultPrefab , new MaterialColor{ Value=new float4{x=1,y=1,z=1,w=1} } );
+			
+			#if ENABLE_HYBRID_RENDERER_V2
+			commander.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
+			commander.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
+			#endif
+
 			return _world;
 		}
 		
