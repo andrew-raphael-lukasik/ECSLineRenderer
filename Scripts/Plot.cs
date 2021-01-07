@@ -94,7 +94,7 @@ namespace EcsLineRenderer
 		)
 		{
 			int length = entities.Length;
-			int max = numDashes * 2;
+			int max = math.max( numDashes*2-1 , 0 );
 			for( int i=0 ; i<max ; i+=2 )
 			{
 				int e = index++;
