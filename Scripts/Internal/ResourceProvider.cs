@@ -17,7 +17,7 @@ namespace EcsLineRenderer.Internal
 				const string path = "ECSLineRenderer/default-mesh";
 				default_mesh = UnityEngine.Resources.Load<Mesh>( path );
 				if( default_mesh!=null )
-					default_mesh.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+					default_mesh.hideFlags = HideFlags.DontUnloadUnusedAsset;
 				else
 					Debug.LogWarning($"loading Mesh asset failed, path: \'{path}\'");
 			}
@@ -28,7 +28,7 @@ namespace EcsLineRenderer.Internal
 				const string path = "ECSLineRenderer/default-line";
 				default_material = UnityEngine.Resources.Load<Material>( path );
 				if( default_material!=null )
-					default_material.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+					default_material.hideFlags = HideFlags.DontUnloadUnusedAsset;
 				else
 					Debug.LogWarning($"loading Material asset failed, path: \'{path}\'");
 
@@ -52,7 +52,6 @@ namespace EcsLineRenderer.Internal
 		// 	mesh.uv = new Vector2[4]{ new Vector2{ x=0 , y=0 } , new Vector2{ x=1 , y=0 } , new Vector2{ x=0 , y=1 } , new Vector2{ x=1 , y=1 } };
 		// 	string path = UnityEditor.EditorUtility.SaveFilePanelInProject( "Save Procedural Mesh" , "Procedural Mesh" , "asset", "message" );
 		// 	if( path!=null ) UnityEditor.AssetDatabase.CreateAsset( mesh , path );
-		// 	UnityEngine.Object.DestroyImmediate(mesh);
 		// }
 		// #endif
 
