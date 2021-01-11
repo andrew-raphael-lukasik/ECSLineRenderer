@@ -72,7 +72,7 @@ namespace EcsLineRenderer.Authoring
 			dstManager.RemoveComponent<LocalToParent>( entity );
 			dstManager.RemoveComponent<Parent>( entity );
 			
-			#if DEBUG
+			#if UNITY_EDITOR
 			dstManager.SetName( entity , gameObject.name );
 			#endif
 		}
