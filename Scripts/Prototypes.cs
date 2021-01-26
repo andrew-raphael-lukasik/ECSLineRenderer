@@ -18,6 +18,9 @@ namespace EcsLineRenderer
 				,	typeof(SegmentTransformSystem)
 				,	typeof(SegmentWorldBoundsSystem)
 				,	typeof(CreateSegmentsSystem)
+
+				// fixes allocation warnings (https://issuetracker.unity3d.com/product/unity/issues/guid/1292310)
+				,	typeof(EndSimulationEntityCommandBufferSystem)
 			};
 
 			segment_components = new ComponentType[]{
@@ -32,9 +35,6 @@ namespace EcsLineRenderer
 				,	ComponentType.ChunkComponent<ChunkWorldRenderBounds>()
 
 				,	typeof(MaterialColor)
-
-				// fixes allocation warnings (https://issuetracker.unity3d.com/product/unity/issues/guid/1292310)
-				,	typeof(EndSimulationEntityCommandBufferSystem)
 
 				#if ENABLE_HYBRID_RENDERER_V2
 				// ,   typeof(AmbientProbeTag)
