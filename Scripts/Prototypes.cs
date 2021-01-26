@@ -33,6 +33,9 @@ namespace EcsLineRenderer
 
 				,	typeof(MaterialColor)
 
+				// fixes allocation warnings (https://issuetracker.unity3d.com/product/unity/issues/guid/1292310)
+				,	typeof(EndSimulationEntityCommandBufferSystem)
+
 				#if ENABLE_HYBRID_RENDERER_V2
 				// ,   typeof(AmbientProbeTag)
 				// ,   typeof(PerInstanceCullingTag)

@@ -64,7 +64,7 @@ namespace EcsLineRenderer
 			}
 
 			Entities
-				.WithName($"add_missing_{nameof(WorldRenderBounds)}_components_job")
+				.WithName("add_missing_components_job")
 				.WithAll<Segment>()
 				.WithNone<WorldRenderBounds>()
 				.ForEach( ( in int entityInQueryIndex , in Entity entity )=>
