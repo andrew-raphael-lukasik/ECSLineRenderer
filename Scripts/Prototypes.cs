@@ -4,9 +4,9 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 
-using EcsLineRenderer.Internal;
+using Segments.Internal;
 
-namespace EcsLineRenderer
+namespace Segments
 {
 	public static class Prototypes
 	{
@@ -14,13 +14,8 @@ namespace EcsLineRenderer
 		static Prototypes ()
 		{
 			worldSystems = new System.Type[]{
-					typeof(SegmentInitializationSystem)
-				,	typeof(SegmentTransformSystem)
-				,	typeof(SegmentWorldBoundsSystem)
+					typeof(SegmentTransformSystem)
 				,	typeof(CreateSegmentsSystem)
-
-				// fixes allocation warnings (https://issuetracker.unity3d.com/product/unity/issues/guid/1292310)
-				,	typeof(EndSimulationEntityCommandBufferSystem)
 			};
 
 			segment_components = new ComponentType[]{
@@ -34,7 +29,7 @@ namespace EcsLineRenderer
 				,	typeof(WorldRenderBounds)
 				,	ComponentType.ChunkComponent<ChunkWorldRenderBounds>()
 
-				,	typeof(MaterialColor)
+				// ,	typeof(MaterialColor)// change: add this manually
 
 				#if ENABLE_HYBRID_RENDERER_V2
 				// ,   typeof(AmbientProbeTag)

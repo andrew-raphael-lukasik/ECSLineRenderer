@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace EcsLineRenderer.Internal
+namespace Segments.Internal
 {
 	public static class ResourceProvider
 	{

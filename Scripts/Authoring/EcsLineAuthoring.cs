@@ -6,7 +6,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Rendering;
 
-namespace EcsLineRenderer.Authoring
+namespace Segments.Authoring
 {
 	[DisallowMultipleComponent]
 	// [RequiresEntityConversion]// doesn't, since Awake() converts to entity too
@@ -33,7 +33,7 @@ namespace EcsLineRenderer.Authoring
 		void Awake ()
 		{
 			// convert to entity:
-			var world = LineRendererWorld.GetOrCreateWorld();
+			var world = Core.GetWorld();
 			var entityManager = world.EntityManager;
 			Entity entity = entityManager.CreateEntity();
 			Convert( entity:entity , dstManager:entityManager , conversionSystem:null );

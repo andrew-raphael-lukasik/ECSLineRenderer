@@ -3,7 +3,7 @@ using UnityEngine;
 
 using Unity.Entities;
 
-namespace EcsLineRenderer
+namespace Segments
 {
 	public struct SegmentMaterialOverride : IComponentData
 	{

@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 using Unity.Rendering;
 
-namespace EcsLineRenderer
+namespace Segments
 {
 	[MaterialProperty("_AspectRatio",MaterialPropertyFormat.Float)]
 	public struct SegmentAspectRatio : IComponentData

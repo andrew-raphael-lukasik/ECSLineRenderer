@@ -3,7 +3,7 @@ using UnityEngine;
 using Unity.Mathematics;
 using Unity.Entities;
 
-namespace EcsLineRenderer
+namespace Segments
 {
 	[InternalBufferCapacity(128)]
 	public struct CreateSegmentsBufferElement : IBufferElementData

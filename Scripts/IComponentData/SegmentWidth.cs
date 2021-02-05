@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace EcsLineRenderer
+namespace Segments
 {
 	public struct SegmentWidth : IComponentData
 	{

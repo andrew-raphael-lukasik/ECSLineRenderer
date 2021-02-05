@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Collections;
 
-namespace EcsLineRenderer.Samples
+namespace Segments.Samples
 {
 	[AddComponentMenu("")]
 	[RequireComponent( typeof(MeshFilter) )]
@@ -33,7 +33,7 @@ namespace EcsLineRenderer.Samples
 			}
 
 			// make sure LR world exists:
-			var worldLR = LineRendererWorld.GetOrCreateWorld();
+			var worldLR = Core.GetWorld();
 			_commandLR = worldLR.EntityManager;
 
 			// initialize segment pool:
@@ -42,16 +42,16 @@ namespace EcsLineRenderer.Samples
 				if( _materialOverride!=null )
 				{
 					if( _widthOverride>0f )
-						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride , _materialOverride );
+						Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride , _materialOverride );
 					else
-						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , out _prefab , _materialOverride );
+						Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _materialOverride );
 				}
 				else
 				{
 					if( _widthOverride>0f )
-						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride );
+						Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride );
 					else
-						LineRendererWorld.InstantiatePool( _edges.Length , out _entities , out _prefab );
+						Core.InstantiatePool( _edges.Length , out _entities , out _prefab );
 				}
 			}
 		}
@@ -65,7 +65,7 @@ namespace EcsLineRenderer.Samples
 		{
 			int index = 0;
 			Matrix4x4 matrix = transform.localToWorldMatrix;
-			LineRendererWorld.Upsize( ref _entities , _prefab , index+_edges.Length );
+			Core.Upsize( ref _entities , _prefab , index+_edges.Length );
 			for( int i=0 ; i<_edges.Length ; i++ )
 			{
 				Entity entity = _entities[index++];

@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace EcsLineRenderer.Authoring
+namespace Segments.Authoring
 {
     [DisallowMultipleComponent]
     public class EcsPolyLineAuthoring : MonoBehaviour

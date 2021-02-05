@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Collections;
 
-namespace EcsLineRenderer.Samples
+namespace Segments.Samples
 {
 	[AddComponentMenu("")]
 	[RequireComponent( typeof(MeshRenderer) )]
@@ -25,7 +25,7 @@ namespace EcsLineRenderer.Samples
 			_meshRenderer = GetComponent<MeshRenderer>();
 
 			// make sure LR world exists:
-			var worldLR = LineRendererWorld.GetOrCreateWorld();
+			var worldLR = Core.GetWorld();
 
 			// initialize segment pool:
 			if( _entities==null || _entities.Length==0 )
@@ -33,16 +33,16 @@ namespace EcsLineRenderer.Samples
 				if( _materialOverride!=null )
 				{
 					if( _widthOverride>0f )
-						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride , _materialOverride );
+						Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride , _materialOverride );
 					else
-						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _materialOverride );
+						Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _materialOverride );
 				}
 				else
 				{
 					if( _widthOverride>0f )
-						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride );
+						Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride );
 					else
-						LineRendererWorld.InstantiatePool( k_cube_vertices , out _entities , out _prefab );
+						Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab );
 				}
 			}
 		}
@@ -56,8 +56,8 @@ namespace EcsLineRenderer.Samples
 		{
 			int index = 0;
 			var bounds = _meshRenderer.bounds;
-			var commands = LineRendererWorld.CreateCommandBuffer();
-			LineRendererWorld.Upsize( ref _entities , _prefab , index+k_cube_vertices );
+			var commands = Core.CreateCommandBuffer();
+			Core.Upsize( ref _entities , _prefab , index+k_cube_vertices );
 			Plot.Box(
 				commands:	commands ,
 				entities:	_entities ,

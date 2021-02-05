@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace EcsLineRenderer.Samples
+namespace Segments.Samples
 {
 	[AddComponentMenu("")]
 	class TransformRotate : MonoBehaviour

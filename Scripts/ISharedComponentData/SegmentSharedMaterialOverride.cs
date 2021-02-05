@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace EcsLineRenderer
+namespace Segments
 {
 	[System.Serializable]
 	public struct SegmentSharedMaterialOverride : ISharedComponentData, System.IEquatable<SegmentSharedMaterialOverride>

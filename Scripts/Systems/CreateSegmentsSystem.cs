@@ -5,11 +5,10 @@ using Unity.Rendering;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace EcsLineRenderer
+namespace Segments
 {
 	[WorldSystemFilter(0)]
 	[UpdateInGroup(typeof(InitializationSystemGroup))]
-	[UpdateBefore(typeof(SegmentInitializationSystem))]
 	public class CreateSegmentsSystem : SystemBase
 	{
 

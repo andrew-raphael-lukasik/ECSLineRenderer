@@ -2,7 +2,7 @@
 using Unity.Entities;
 using Unity.Collections;
 
-namespace EcsLineRenderer
+namespace Segments
 {
 	public static class Plot
 	{
