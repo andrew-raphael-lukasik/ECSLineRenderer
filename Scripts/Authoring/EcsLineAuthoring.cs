@@ -33,7 +33,7 @@ namespace Segments.Authoring
 		void Awake ()
 		{
 			// convert to entity:
-			var world = Core.GetWorld();
+			var world = Segments.Core.GetWorld();
 			var entityManager = world.EntityManager;
 			Entity entity = entityManager.CreateEntity();
 			Convert( entity:entity , dstManager:entityManager , conversionSystem:null );
@@ -44,22 +44,22 @@ namespace Segments.Authoring
 
 		public void Convert ( Entity entity , EntityManager dstManager , GameObjectConversionSystem conversionSystem )
 		{
-			dstManager.AddComponents( entity , Prototypes.segment_component_types );
+			dstManager.AddComponents( entity , Segments.Prototypes.segment_component_types );
 
-			dstManager.SetComponentData( entity , new Segment{
+			dstManager.SetComponentData( entity , new Segments.Segment{
 				start	= this.start ,
 				end		= this.end
 			});
-			dstManager.SetComponentData( entity , new SegmentWidth{
+			dstManager.SetComponentData( entity , new Segments.SegmentWidth{
 				Value	= (half) this.width
 			});
 
-			var renderMesh = Prototypes.renderMesh;
+			var renderMesh = Segments.Prototypes.renderMesh;
 			if( materialOverride!=null ) renderMesh.material = materialOverride;
 			Assert.IsNotNull(renderMesh.material,"renderMesh.material is null");
 			dstManager.SetSharedComponentData( entity , renderMesh );
 			
-			dstManager.SetComponentData<RenderBounds>( entity , Prototypes.renderBounds );
+			dstManager.SetComponentData<RenderBounds>( entity , Segments.Prototypes.renderBounds );
 
 			dstManager.AddComponent<MaterialColor>( entity );
 			dstManager.SetComponentData( entity , new MaterialColor{

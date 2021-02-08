@@ -33,7 +33,7 @@ namespace Segments.Samples
 			}
 
 			// make sure LR world exists:
-			var worldLR = Core.GetWorld();
+			var worldLR = Segments.Core.GetWorld();
 			_commandLR = worldLR.EntityManager;
 
 			// initialize segment pool:
@@ -42,16 +42,16 @@ namespace Segments.Samples
 				if( _materialOverride!=null )
 				{
 					if( _widthOverride>0f )
-						Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride , _materialOverride );
+						Segments.Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride , _materialOverride );
 					else
-						Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _materialOverride );
+						Segments.Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _materialOverride );
 				}
 				else
 				{
 					if( _widthOverride>0f )
-						Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride );
+						Segments.Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride );
 					else
-						Core.InstantiatePool( _edges.Length , out _entities , out _prefab );
+						Segments.Core.InstantiatePool( _edges.Length , out _entities , out _prefab );
 				}
 			}
 		}
@@ -65,12 +65,12 @@ namespace Segments.Samples
 		{
 			int index = 0;
 			Matrix4x4 matrix = transform.localToWorldMatrix;
-			Core.Upsize( ref _entities , _prefab , index+_edges.Length );
+			Segments.Core.Upsize( ref _entities , _prefab , index+_edges.Length );
 			for( int i=0 ; i<_edges.Length ; i++ )
 			{
 				Entity entity = _entities[index++];
 				int2 edgeIndices = _edges[i];
-				_commandLR.SetComponentData( entity , new Segment{
+				_commandLR.SetComponentData( entity , new Segments.Segment{
 						start	= matrix.MultiplyPoint( _vertices[edgeIndices.x] ) ,
 						end		= matrix.MultiplyPoint( _vertices[edgeIndices.y] )
 				} );

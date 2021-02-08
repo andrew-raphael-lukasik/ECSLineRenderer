@@ -25,7 +25,7 @@ namespace Segments.Samples
 			_meshRenderer = GetComponent<MeshRenderer>();
 
 			// make sure LR world exists:
-			var worldLR = Core.GetWorld();
+			var worldLR = Segments.Core.GetWorld();
 
 			// initialize segment pool:
 			if( _entities==null || _entities.Length==0 )
@@ -33,16 +33,16 @@ namespace Segments.Samples
 				if( _materialOverride!=null )
 				{
 					if( _widthOverride>0f )
-						Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride , _materialOverride );
+						Segments.Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride , _materialOverride );
 					else
-						Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _materialOverride );
+						Segments.Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _materialOverride );
 				}
 				else
 				{
 					if( _widthOverride>0f )
-						Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride );
+						Segments.Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride );
 					else
-						Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab );
+						Segments.Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab );
 				}
 			}
 		}
@@ -56,9 +56,9 @@ namespace Segments.Samples
 		{
 			int index = 0;
 			var bounds = _meshRenderer.bounds;
-			var commands = Core.CreateCommandBuffer();
-			Core.Upsize( ref _entities , _prefab , index+k_cube_vertices );
-			Plot.Box(
+			var commands = Segments.Core.CreateCommandBuffer();
+			Segments.Core.Upsize( ref _entities , _prefab , index+k_cube_vertices );
+			Segments.Plot.Box(
 				commands:	commands ,
 				entities:	_entities ,
 				index:		ref index ,
