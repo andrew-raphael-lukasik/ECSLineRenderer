@@ -14,10 +14,10 @@ namespace Segments
 	public static class Core
 	{
 
-		static World _world;
-
-		static EntityArchetype _segmentArchetype = default(EntityArchetype);
-		static Entity _defaultPrefab;
+		static World world;
+		static EntityManager commander;
+		static EntityArchetype segmentArchetype = default(EntityArchetype);
+		static Entity defaultPrefab;
 
 		public static EndSimulationEntityCommandBufferSystem CommandBufferSystem { get; private set; }
 		public static EntityCommandBuffer CreateCommandBuffer () => CommandBufferSystem.CreateCommandBuffer();
@@ -26,32 +26,36 @@ namespace Segments
 
 		public static World GetWorld ()
 		{
-			if( _world!=null )
-				return _world;
+			if( world!=null )
+				return world;
 			else
 			{
-				_world = World.DefaultGameObjectInjectionWorld;
-				DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( _world , Prototypes.worldSystems );
-				CommandBufferSystem = _world.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-				var commander = _world.EntityManager;
+				world = World.DefaultGameObjectInjectionWorld;
+				DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( world , Prototypes.worldSystems );
+				CommandBufferSystem = world.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+				commander = world.EntityManager;
 				
-				_defaultPrefab = commander.CreateEntity( GetSegmentArchetype() );
-				commander.SetComponentData<Segment>( _defaultPrefab , Prototypes.segment );
-				commander.SetComponentData<SegmentWidth>( _defaultPrefab , Prototypes.segmentWidth );
-				commander.SetComponentData<SegmentAspectRatio>( _defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
-				commander.AddComponentData<RenderBounds>( _defaultPrefab , Prototypes.renderBounds );
-				commander.AddComponentData<LocalToWorld>( _defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
+				defaultPrefab = commander.CreateEntity( GetSegmentArchetype() );
+				commander.SetComponentData<Segment>( defaultPrefab , Prototypes.segment );
+				commander.SetComponentData<SegmentWidth>( defaultPrefab , Prototypes.segmentWidth );
+				commander.SetComponentData<SegmentAspectRatio>( defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
+				commander.AddComponentData<RenderBounds>( defaultPrefab , Prototypes.renderBounds );
+				commander.AddComponentData<LocalToWorld>( defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
 				
 				var renderMesh = Prototypes.renderMesh;
-				commander.SetSharedComponentData<RenderMesh>( _defaultPrefab , renderMesh );
+				commander.SetSharedComponentData<RenderMesh>( defaultPrefab , renderMesh );
 				// commander.SetComponentData<MaterialColor>( _defaultPrefab , new MaterialColor{ Value=new float4{x=1,y=1,z=1,w=1} } );// change: initialize manually
 				
 				#if ENABLE_HYBRID_RENDERER_V2
-				commander.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
-				commander.SetComponentData( _defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
+				commander.SetComponentData( defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
+				commander.SetComponentData( defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
 				#endif
 
-				return _world;
+				#if DEBUG
+				Debug.Log($"{nameof(Segments)}: systems initialized");
+				#endif
+
+				return world;
 			}
 		}
 		
@@ -62,21 +66,34 @@ namespace Segments
 
 		public static Entity GetSegmentPrefabCopy ()
 		{
-			var commander = GetEntityManager();
-			Entity copy = commander.Instantiate( _defaultPrefab );
+			Initialize();
+			Entity copy = commander.Instantiate( defaultPrefab );
 			commander.AddComponent<Prefab>( copy );
+			return copy;
+		}
+		public static Entity GetSegmentPrefabCopy ( Material material )
+		{
+			Entity copy = GetSegmentPrefabCopy();
+			var renderMesh = commander.GetSharedComponentData<RenderMesh>( copy );
+			renderMesh.material = material;
+			commander.SetSharedComponentData<RenderMesh>( copy , renderMesh );
+			return copy;
+		}
+		public static Entity GetSegmentPrefabCopy ( Material material , float width )
+		{
+			Entity copy = GetSegmentPrefabCopy( material );
+			commander.SetComponentData( copy , new SegmentWidth{ Value=(half)width } );
 			return copy;
 		}
 
 
 		public static EntityArchetype GetSegmentArchetype ()
 		{
-			var commander = GetEntityManager();
-			if( _segmentArchetype.Valid )
-				return _segmentArchetype;
+			if( segmentArchetype.Valid )
+				return segmentArchetype;
 			
-			_segmentArchetype = commander.CreateArchetype( Prototypes.segment_prefab_components );
-			return _segmentArchetype;
+			segmentArchetype = commander.CreateArchetype( Prototypes.segment_prefab_components );
+			return segmentArchetype;
 		}
 
 
@@ -88,8 +105,7 @@ namespace Segments
 						=> InstantiatePool( length , out entities , out prefab , Prototypes.k_defaul_segment_width , material );
 		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width , Material material )
 		{
-			GetWorld();// make sure world exists
-			var commander = GetEntityManager();
+			Initialize();
 			prefab = GetSegmentPrefabCopy();
 			{
 				if( material!=null )
@@ -134,7 +150,6 @@ namespace Segments
 				Debug.Log($"↑ upsizing pool (length) {length} < {minLength} (minLength)");
 				#endif
 
-				var commander = GetEntityManager();
 				NativeArray<Entity> newEntities = commander.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
 				var resizedArray = new NativeArray<Entity>( minLength , Allocator.Persistent , NativeArrayOptions.UninitializedMemory );
 				NativeArray<Entity>.Copy( src:entities , srcIndex:0 , dst:resizedArray , dstIndex:0 , length:length );
@@ -191,17 +206,25 @@ namespace Segments
 		/// <summary> Destroys all entities in the collection immediately. </summary>
 		public static void DestroyNow ( NativeSlice<Entity> entities )
 		{
-			var commander = GetEntityManager();
 			for( int i=0 ; i<entities.Length ; i++ )
 				commander.DestroyEntity( entities[i] );
 		}
 
 		public static void DestroyAllSegments ()
 		{
-			var commander = _world.EntityManager;
 			var query = commander.CreateEntityQuery( new ComponentType[]{ typeof(Segment) } );
 			commander.DestroyEntity( query );
-			// query.Dispose();
+		}
+
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void Initialize () => GetWorld();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static void _WorldInitializedWarningCheck ()
+		{
+			if( world==null || !world.IsCreated )
+				Debug.LogError($"Call `{nameof(Segments)}.{nameof(Core)}.{nameof(Initialize)}()` first.");
 		}
 
 
