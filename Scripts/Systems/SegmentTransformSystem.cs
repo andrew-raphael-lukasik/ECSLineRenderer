@@ -6,7 +6,7 @@ using Unity.Transforms;
 using Unity.Rendering;
 using UnityEngine;
 
-namespace Segments
+namespace Segments.Systems
 {
 	[WorldSystemFilter(0)]
 	[UpdateInGroup( typeof(InitializationSystemGroup) )]
