@@ -9,23 +9,24 @@ namespace Segments
 		
 
 		public static void Ellipse (
-			EntityCommandBuffer commands , NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float rx , float ry ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
 		)
 		{
+			int bufferSizeRequired = index + numSegments;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			
 			float theta = ( 2f * math.PI ) / (float)numSegments;
-			int length = entities.Length;
 			for( int i=0 ; i<numSegments ; i++ )
 			{
 				float f0 = theta * (float)i;
 				float f1 = theta * (float)(i+1);
 				float3 v0 = math.mul( rot , ( new float3{ x=math.cos(f0)*rx , y=math.sin(f0)*ry } ) );
 				float3 v1 = math.mul( rot , ( new float3{ x=math.cos(f1)*rx , y=math.sin(f1)*ry } ) );
-				int e = index++;
-				if( !(e<length) ) continue;
-				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				
+				segments[index++] = new float3x2{ c0=pos+v0 , c1=pos+v1 };
 			}
 
 			float a = math.max(rx,ry);
@@ -39,12 +40,15 @@ namespace Segments
 		}
 
 		public static void EllipseAtFoci (
-			EntityCommandBuffer commands , NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float rx , float ry ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
 		)
 		{
+			int bufferSizeRequired = index + numSegments;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			float a = math.max(rx,ry);
 			float b = math.min(rx,ry);
 			float ecc = math.sqrt( 1f - (b*b)/(a*a) );
@@ -52,67 +56,78 @@ namespace Segments
 			float3 focus = rx>ry ? new float3{x=c} : new float3{y=c};
 
 			float theta = ( 2f * math.PI ) / (float)numSegments;
-			int length = entities.Length;
 			for( int i=0 ; i<numSegments ; i++ )
 			{
 				float f0 = theta * (float)i;
 				float f1 = theta * (float)(i+1);
-				float3 v0 = math.mul( rot , ( new float3{ x=math.cos(f0)*rx , y=math.sin(f0)*ry } + focus ) );
-				float3 v1 = math.mul( rot , ( new float3{ x=math.cos(f1)*rx , y=math.sin(f1)*ry } + focus ) );
-				int e = index++;
-				if( !(e<length) ) continue;
-				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				float3 v0 = math.mul( rot , new float3{ x=math.cos(f0)*rx , y=math.sin(f0)*ry } + focus );
+				float3 v1 = math.mul( rot , new float3{ x=math.cos(f1)*rx , y=math.sin(f1)*ry } + focus );
+				
+				segments[index++] = new float3x2{ c0=pos+v0 , c1=pos+v1 };
 			}
 		}
 
 
 		public static void Circle (
-			EntityCommandBuffer commands , NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float r , float3 pos , quaternion rot ,
 			int numSegments = 128
 		)
 		{
+			int bufferSizeRequired = index + numSegments;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			float theta = ( 2f * math.PI ) / (float)numSegments;
-			int length = entities.Length;
 			for( int i=0 ; i<numSegments ; i++ )
 			{
 				float f0 = theta * (float)i;
 				float f1 = theta * (float)(i+1);
 				float3 v0 = math.mul( rot , ( new float3{ x=math.cos(f0) , y=math.sin(f0) } * r ) );
 				float3 v1 = math.mul( rot , ( new float3{ x=math.cos(f1) , y=math.sin(f1) } * r ) );
-				int e = index++;
-				if( !(e<length) ) continue;
-				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				segments[index++] = new float3x2{ c0 = pos+v0 , c1 = pos+v1 };
 			}
 		}
 
 
+		public static void Line (
+			NativeList<float3x2> segments , ref int index ,
+			float3 start , float3 end
+		)
+		{
+			int bufferSizeRequired = index + 1;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
+			segments[index++] = new float3x2{ c0=start , c1=end };
+		}
+
+
 		public static void DashedLine (
-			EntityCommandBuffer commands ,
-			NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float3 start , float3 end , int numDashes
 		)
 		{
-			int length = entities.Length;
+			int bufferSizeRequired = index + math.max( numDashes , 0 );
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			int max = math.max( numDashes*2-1 , 0 );
 			for( int i=0 ; i<max ; i+=2 )
 			{
-				int e = index++;
-				if( !(e<length) ) continue;
-				commands.SetComponent(  entities[e] , new Segment{
-					start	= math.lerp( start , end , (float)(i) / (float)max ) ,
-					end		= math.lerp( start , end , (float)(i+1) / (float)max )
-				});
+				segments[index++] = new float3x2{
+					c0 = math.lerp( start , end , (float)(i) / (float)max ) ,
+					c1 = math.lerp( start , end , (float)(i+1) / (float)max )
+				};
 			}
 		}
 
 
 		public static void Arrow (
-			EntityCommandBuffer commands ,
-			NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float2 p1 , float2 p2
 		)
 		{
+			int bufferSizeRequired = index + 4;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			
 			float d = math.distance( p1 , p2 );
 			float3 v1 = new float3{ x=p1.x , y=p1.y };
 			float3 v2 = new float3{ x=p2.x , y=p2.y };
@@ -120,60 +135,48 @@ namespace Segments
 			float3 v3 = v2 + math.mul( quaternion.Euler( 0 , 0 , math.PI/14f ) , arrowLen );
 			float3 v4 = v2 + math.mul( quaternion.Euler( 0 , 0 , -math.PI/14f ) , arrowLen );
 			
-			int e, length = entities.Length;
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{ start=v1 , end=v2 } );
-
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{ start=v2 , end=v3 } );
-
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{ start=v3 , end=v4 } );
-
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{ start=v4 , end=v2 } );
+			segments[index++] = new float3x2{ c0=v1 , c1=v2 };
+			segments[index++] = new float3x2{ c0=v2 , c1=v3 };
+			segments[index++] = new float3x2{ c0=v3 , c1=v4 };
+			segments[index++] = new float3x2{ c0=v4 , c1=v2 };
 		}
 		public static void Arrow (
-			EntityCommandBuffer commands ,
-			NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float3 v1 , float3 v2 , float3 cameraPos
 		)
 		{
+			int bufferSizeRequired = index + 4;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			float3 arrowLen = math.normalize(v1-v2) * math.distance(v1,v2) * 0.06f;
 			float3 camAxis = math.normalize( v2 - cameraPos );
 			float3 v3 = v2 + math.mul( quaternion.AxisAngle( camAxis , math.PI/14f ) , arrowLen );
 			float3 v4 = v2 + math.mul( quaternion.AxisAngle( camAxis , -math.PI/14f ) , arrowLen );
 			
-			int e, length = entities.Length;
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{ start=v1 , end=v2 } );
-
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{ start=v2 , end=v3 } );
-
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{ start=v3 , end=v4 } );
-
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{ start=v4 , end=v2 } );
+			segments[index++] = new float3x2{ c0=v1 , c1=v2 };
+			segments[index++] = new float3x2{ c0=v2 , c1=v3 };
+			segments[index++] = new float3x2{ c0=v3 , c1=v4 };
+			segments[index++] = new float3x2{ c0=v4 , c1=v2 };
 		}
 
 
 		/// <param name="a"> +-y = ( b * math.sqrt( **a**^2 + x^2 ) ) / **a** </param>
 		/// <param name="b"> +-y = ( **b** * math.sqrt( a^2 + x^2 ) ) / a </param>
 		public static void HyperbolaAtFoci (
-			EntityCommandBuffer commands , NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
 		)
 		{
+			int bufferSizeRequired = index + numSegments;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			float c = math.sqrt( a*a + b*b );
 			float2 vertex = new float2{ y=a };
 			float3 focus = new float3{ x=0 , y=c };
 			float xmin = vertex.x - xrange;
 			float xmax = vertex.x + xrange;
-			int length = entities.Length;
 			for( int i=0 ; i<numSegments ; i++ )
 			{
 				float x0 = math.lerp( xmin , xmax , (float)i / (float)numSegments );
@@ -181,22 +184,22 @@ namespace Segments
 				float3 v0 = math.mul( rot , ( new float3{ x=x0 , y=(b*math.sqrt(a*a+x0*x0))/a } - focus ) );
 				float3 v1 = math.mul( rot , ( new float3{ x=x1 , y=(b*math.sqrt(a*a+x1*x1))/a } - focus ) );
 
-				int e = index++;
-				if( !(e<length) ) continue;
-				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				segments[index++] = new float3x2{ c0=pos+v0 , c1=pos+v1 };
 			}
 		}
 
 		/// <param name="a"> +-y = ( b * math.sqrt( **a**^2 + x^2 ) ) / **a** </param>
 		/// <param name="b"> +-y = ( **b** * math.sqrt( a^2 + x^2 ) ) / a </param>
 		public static void Hyperbola (
-			EntityCommandBuffer commands ,
-			NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
 		)
 		{
+			int bufferSizeRequired = index + numSegments + 2;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			float Asymptote ( float x ) => (b/a)*x;
 			float c = math.sqrt( a*a + b*b );
 			float2 vertex = new float2{ y=a };
@@ -205,7 +208,6 @@ namespace Segments
 			float3 fmirror = new float3{ x=1 , y=-1f , z=1 };
 			float xmin = vertex.x - xrange;
 			float xmax = vertex.x + xrange;
-			int e, length = entities.Length;
 			for( int i=0 ; i<numSegments ; i++ )
 			{
 				float x0 = math.lerp( xmin , xmax , (float)i / (float)numSegments );
@@ -217,27 +219,23 @@ namespace Segments
 				float3 v0 = math.mul(rot,p0);
 				float3 v1 = math.mul(rot,p1);
 
-				if( !((e=index++)<length) ) continue;
-				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				segments[index++] = new float3x2{ c0=pos+v0 , c1=pos+v1 };
 
 				float3 v0b = math.mul( rot , p0*fmirror );
 				float3 v1b = math.mul( rot , p1*fmirror );
 
-				if( !((e=index++)<length) ) continue;
-				commands.SetComponent( entities[e] , new Segment{ start=pos+v0b , end=pos+v1b } );
+				segments[index++] = new float3x2{ c0=pos+v0b , c1=pos+v1b };
 			}
 			
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{
-				start	= pos + math.mul( rot , new float3{ x=xmin , y=Asymptote(xmin) } ) ,
-				end		= pos + math.mul( rot , new float3{ x=xmax , y=Asymptote(xmax) } )
-			} );
+			segments[index++] = new float3x2{
+				c0	= pos + math.mul( rot , new float3{ x=xmin , y=Asymptote(xmin) } ) ,
+				c1	= pos + math.mul( rot , new float3{ x=xmax , y=Asymptote(xmax) } )
+			};
 
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{
-				start	= pos + math.mul( rot , new float3{ x=xmin , y=-Asymptote(xmin) } ) ,
-				end		= pos + math.mul( rot , new float3{ x=xmax , y=-Asymptote(xmax) } )
-			} );
+			segments[index++] = new float3x2{
+				c0	= pos + math.mul( rot , new float3{ x=xmin , y=-Asymptote(xmin) } ) ,
+				c1	= pos + math.mul( rot , new float3{ x=xmax , y=-Asymptote(xmax) } )
+			};
 		}
 
 
@@ -246,20 +244,21 @@ namespace Segments
 		/// <param name="b"> y = axx + **b**x + c </param>
 		/// <param name="c"> y = axx + bx + **c** </param>
 		public static void Parabola (
-			EntityCommandBuffer commands ,
-			NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float a , float b ,
 			float xmin , float xmax ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
 		)
 		{
+			int bufferSizeRequired = index + numSegments + 1;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			const float c = 0;
 			float2 vertex = new float2{ x = -b / (2 * a) , y = ((4 * a * c) - (b * b)) / (4 * a) };
 			float3 focus = new float3{ x = -b / (2 * a) , y = ((4 * a * c) - (b * b) + 1) / (4 * a) };
 			float directrix_y = c - ((b*b) + 1) * 4 * a;
 
-			int e, length = entities.Length;
 			for( int i=0 ; i<numSegments ; i++ )
 			{
 				float x0 = math.lerp( xmin , xmax , (float)i / (float)numSegments );
@@ -267,28 +266,28 @@ namespace Segments
 				float3 v0 = math.mul( rot , new float3{ x=x0 , y=a*x0*x0+b*x0+c } );
 				float3 v1 = math.mul( rot , new float3{ x=x1 , y=a*x1*x1+b*x1+c } );
 
-				if( !((e=index++)<length) ) continue;
-				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				segments[index++] = new float3x2{ c0=pos+v0 , c1=pos+v1 };
 			}
 			
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{
-				start	= pos + math.mul( rot , new float3{ x=xmin , y=directrix_y } ) ,
-				end		= pos + math.mul( rot , new float3{ x=xmax , y=directrix_y } )
-			} );
+			segments[index++] = new float3x2{
+				c0	= pos + math.mul( rot , new float3{ x=xmin , y=directrix_y } ) ,
+				c1	= pos + math.mul( rot , new float3{ x=xmax , y=directrix_y } )
+			};
 		}
 
 		/// <param name="a"> y = **a**xx + bx + c </param>
 		/// <param name="b"> y = axx + **b**x + c </param>
 		/// <param name="c"> y = axx + bx + **c** </param>
 		public static void ParabolaAtFoci (
-			EntityCommandBuffer commands ,
-			NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
 			int numSegments = 128
 		)
 		{
+			int bufferSizeRequired = index + numSegments + 1;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			const float c = 0;
 			float2 vertex = new float2{ x = -b / (2 * a) , y = ((4 * a * c) - (b * b)) / (4 * a) };
 			float3 focus = new float3{ x = -b / (2 * a) , y = ((4 * a * c) - (b * b) + 1) / (4 * a) };
@@ -296,7 +295,6 @@ namespace Segments
 			
 			float xmin = vertex.x - xrange;
 			float xmax = vertex.x + xrange;
-			int e, length = entities.Length;
 			for( int i=0 ; i<numSegments ; i++ )
 			{
 				float x0 = math.lerp( xmin , xmax , (float)i / (float)numSegments );
@@ -304,25 +302,25 @@ namespace Segments
 				float3 v0 = math.mul( rot , ( new float3{ x=x0 , y=a*x0*x0+b*x0+c } - focus ) );
 				float3 v1 = math.mul( rot , ( new float3{ x=x1 , y=a*x1*x1+b*x1+c } - focus ) );
 
-				if( !((e=index++)<length) ) continue;
-				commands.SetComponent( entities[e] , new Segment{ start=pos+v0 , end=pos+v1 } );
+				segments[index++] = new float3x2{ c0=pos+v0 , c1=pos+v1 };
 			}
 			
-			if( (e=index++)<length )
-			commands.SetComponent( entities[e] , new Segment{
-				start	= math.mul( rot , new float3{ x=xmin , y=directrix_y } - focus ) + new float3{x=pos.z} ,
-				end		= math.mul( rot , new float3{ x=xmax , y=directrix_y } - focus ) + new float3{x=pos.z}
-			} );
+			segments[index++] = new float3x2{
+				c0	= math.mul( rot , new float3{ x=xmin , y=directrix_y } - focus ) + new float3{x=pos.z} ,
+				c1	= math.mul( rot , new float3{ x=xmax , y=directrix_y } - focus ) + new float3{x=pos.z}
+			};
 		}
 
 
 		/// <summary> 12 segments </summary>
 		public static void Cube (
-			EntityCommandBuffer commands ,
-			NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float a , float3 pos , quaternion rot
 		)
 		{
+			int bufferSizeRequired = index + 12;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			float f = a * 0.5f;
 			float3 B0 = math.mul( rot , new float3{ x=f , y=-f , z=-f } );
 			float3 B1 = math.mul( rot , new float3{ x=-f , y=-f , z=-f } );
@@ -333,31 +331,32 @@ namespace Segments
 			float3 T2 = math.mul( rot , new float3{ x=-f , y=f , z=f } );
 			float3 T3 = math.mul( rot , new float3{ x=f , y=f , z=f } );
 
-			int e, length = entities.Length;
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+B1 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+B2 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+B3 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+B0 } );
+			segments[index++] = new float3x2{ c0=pos+B0 , c1=pos+B1 };
+			segments[index++] = new float3x2{ c0=pos+B1 , c1=pos+B2 };
+			segments[index++] = new float3x2{ c0=pos+B2 , c1=pos+B3 };
+			segments[index++] = new float3x2{ c0=pos+B3 , c1=pos+B0 };
 
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T0 , end=pos+T1 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T1 , end=pos+T2 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T2 , end=pos+T3 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T3 , end=pos+T0 } );
+			segments[index++] = new float3x2{ c0=pos+T0 , c1=pos+T1 };
+			segments[index++] = new float3x2{ c0=pos+T1 , c1=pos+T2 };
+			segments[index++] = new float3x2{ c0=pos+T2 , c1=pos+T3 };
+			segments[index++] = new float3x2{ c0=pos+T3 , c1=pos+T0 };
 
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+T0 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+T1 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+T2 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+T3 } );
+			segments[index++] = new float3x2{ c0=pos+B0 , c1=pos+T0 };
+			segments[index++] = new float3x2{ c0=pos+B1 , c1=pos+T1 };
+			segments[index++] = new float3x2{ c0=pos+B2 , c1=pos+T2 };
+			segments[index++] = new float3x2{ c0=pos+B3 , c1=pos+T3 };
 		}
 
 
 		/// <summary> 12 segments </summary>
 		public static void Box (
-			EntityCommandBuffer commands ,
-			NativeSlice<Entity> entities , ref int index ,
+			NativeList<float3x2> segments , ref int index ,
 			float3 size , float3 pos , quaternion rot
 		)
 		{
+			int bufferSizeRequired = index + 12;
+			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+
 			float3 f = size * 0.5f;
 			float3 B0 = math.mul( rot , new float3{ x=f.x , y=-f.y , z=-f.z } );
 			float3 B1 = math.mul( rot , new float3{ x=-f.x , y=-f.y , z=-f.z } );
@@ -368,21 +367,20 @@ namespace Segments
 			float3 T2 = math.mul( rot , new float3{ x=-f.x , y=f.y , z=f.z } );
 			float3 T3 = math.mul( rot , new float3{ x=f.x , y=f.y , z=f.z } );
 			
-			int e, length = entities.Length;
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+B1 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+B2 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+B3 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+B0 } );
+			segments[index++] = new float3x2{ c0=pos+B0 , c1=pos+B1 };
+			segments[index++] = new float3x2{ c0=pos+B1 , c1=pos+B2 };
+			segments[index++] = new float3x2{ c0=pos+B2 , c1=pos+B3 };
+			segments[index++] = new float3x2{ c0=pos+B3 , c1=pos+B0 };
 
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T0 , end=pos+T1 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T1 , end=pos+T2 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T2 , end=pos+T3 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+T3 , end=pos+T0 } );
+			segments[index++] = new float3x2{ c0=pos+T0 , c1=pos+T1 };
+			segments[index++] = new float3x2{ c0=pos+T1 , c1=pos+T2 };
+			segments[index++] = new float3x2{ c0=pos+T2 , c1=pos+T3 };
+			segments[index++] = new float3x2{ c0=pos+T3 , c1=pos+T0 };
 
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B0 , end=pos+T0 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B1 , end=pos+T1 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B2 , end=pos+T2 } );
-			if( (e=index++)<length ) commands.SetComponent( entities[e] , new Segment{ start=pos+B3 , end=pos+T3 } );
+			segments[index++] = new float3x2{ c0=pos+B0 , c1=pos+T0 };
+			segments[index++] = new float3x2{ c0=pos+B1 , c1=pos+T1 };
+			segments[index++] = new float3x2{ c0=pos+B2 , c1=pos+T2 };
+			segments[index++] = new float3x2{ c0=pos+B3 , c1=pos+T3 };
 		}
 
 

@@ -19,9 +19,9 @@ namespace Segments
 		static EntityArchetype segmentArchetype = default(EntityArchetype);
 		static Entity defaultPrefab;
 
-		public static EndSimulationEntityCommandBufferSystem CommandBufferSystem { get; private set; }
-		public static EntityCommandBuffer CreateCommandBuffer () => CommandBufferSystem.CreateCommandBuffer();
-		public static void AddCommandBufferDependency ( JobHandle producerJob ) => CommandBufferSystem.AddJobHandleForProducer( producerJob );
+		[System.Obsolete] public static EndSimulationEntityCommandBufferSystem CommandBufferSystem { get; private set; }
+		[System.Obsolete] public static EntityCommandBuffer CreateCommandBuffer () => CommandBufferSystem.CreateCommandBuffer();
+		[System.Obsolete] public static void AddCommandBufferDependency ( JobHandle producerJob ) => CommandBufferSystem.AddJobHandleForProducer( producerJob );
 
 
 		public static World GetWorld ()
@@ -79,6 +79,12 @@ namespace Segments
 			commander.SetSharedComponentData<RenderMesh>( copy , renderMesh );
 			return copy;
 		}
+		public static Entity GetSegmentPrefabCopy ( float width )
+		{
+			Entity copy = GetSegmentPrefabCopy();
+			commander.SetComponentData( copy , new SegmentWidth{ Value=(half)width } );
+			return copy;
+		}
 		public static Entity GetSegmentPrefabCopy ( Material material , float width )
 		{
 			Entity copy = GetSegmentPrefabCopy( material );
@@ -97,13 +103,13 @@ namespace Segments
 		}
 
 
-		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab )
+		[System.Obsolete] public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab )
 						=> InstantiatePool( length , out entities , out prefab , Prototypes.k_defaul_segment_width , Internal.ResourceProvider.default_material );
-		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width )
+		[System.Obsolete] public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width )
 						=> InstantiatePool( length , out entities , out prefab , width , Internal.ResourceProvider.default_material );
-		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , Material material )
+		[System.Obsolete] public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , Material material )
 						=> InstantiatePool( length , out entities , out prefab , Prototypes.k_defaul_segment_width , material );
-		public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width , Material material )
+		[System.Obsolete] public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width , Material material )
 		{
 			Initialize();
 			prefab = GetSegmentPrefabCopy();
@@ -125,7 +131,7 @@ namespace Segments
 
 
 		/// <summary> Resizes pool length ONLY when it's != requestedLength </summary>
-		public static void Resize ( ref NativeArray<Entity> entities , Entity prefab , int requestedLength )
+		[System.Obsolete] public static void Resize ( ref NativeArray<Entity> entities , Entity prefab , int requestedLength )
 		{
 			Assert.IsTrue( entities.IsCreated );
 			int length = entities.Length;
@@ -138,7 +144,7 @@ namespace Segments
 		
 
 		/// <summary> Upsizes pool length when it's < minLength </summary>
-		public static void Upsize ( ref NativeArray<Entity> entities , Entity prefab , int minLength )
+		[System.Obsolete] public static void Upsize ( ref NativeArray<Entity> entities , Entity prefab , int minLength )
 		{
 			Assert.IsTrue( entities.IsCreated );
 			int length = entities.Length;
@@ -161,7 +167,7 @@ namespace Segments
 		}
 
 		/// <summary> Downsizes pool length when it's > maxLength </summary>
-		public static void Downsize ( ref NativeArray<Entity> entities , int maxLength )
+		[System.Obsolete] public static void Downsize ( ref NativeArray<Entity> entities , int maxLength )
 		{
 			if( !entities.IsCreated ) Debug.LogError( $"{nameof(entities)}.IsCreated returns false" );
 			Assert.IsTrue( entities.IsCreated , $"{nameof(entities)}.IsCreated returns false" );
@@ -184,13 +190,13 @@ namespace Segments
 
 
 		/// <summary> Schedules DestroyEntity commands for all entities in the collection. </summary>
-		public static void Destroy ( NativeArray<Entity> entities , EntityCommandBuffer commands )
+		[System.Obsolete] public static void Destroy ( NativeArray<Entity> entities , EntityCommandBuffer commands )
 		{
 			if( !entities.IsCreated ) return;
 			Destroy( entities.Slice() , commands );
 		}
 		/// <summary> Schedules DestroyEntity commands for all entities in the collection. </summary>
-		public static void Destroy ( NativeSlice<Entity> entities , EntityCommandBuffer commands )
+		[System.Obsolete] public static void Destroy ( NativeSlice<Entity> entities , EntityCommandBuffer commands )
 		{
 			for( int i=0 ; i<entities.Length ; i++ )
 				commands.DestroyEntity( entities[i] );
@@ -198,13 +204,13 @@ namespace Segments
 
 
 		/// <summary> Destroys all entities in the collection immediately. </summary>
-		public static void DestroyNow ( NativeArray<Entity> entities )
+		[System.Obsolete] public static void DestroyNow ( NativeArray<Entity> entities )
 		{
 			if( !entities.IsCreated ) return;
 			DestroyNow( entities.Slice() );
 		}
 		/// <summary> Destroys all entities in the collection immediately. </summary>
-		public static void DestroyNow ( NativeSlice<Entity> entities )
+		[System.Obsolete] public static void DestroyNow ( NativeSlice<Entity> entities )
 		{
 			for( int i=0 ; i<entities.Length ; i++ )
 				commander.DestroyEntity( entities[i] );

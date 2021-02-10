@@ -15,52 +15,46 @@ namespace Segments.Samples
 		[SerializeField] float _widthOverride = 0.003f;
 
 		MeshRenderer _meshRenderer = null;
-		NativeArray<Entity> _entities;
-		Entity _prefab;
-		const int k_cube_vertices = 12;
-
-
+		NativeList<float3x2> _segments;
+		
 		void Awake ()
 		{
 			_meshRenderer = GetComponent<MeshRenderer>();
 
-			// make sure LR world exists:
-			var worldLR = Segments.Core.GetWorld();
-
 			// initialize segment pool:
-			if( _entities==null || _entities.Length==0 )
+			var world = Segments.Core.GetWorld();
+			var entityManager = world.EntityManager;
+			Entity prefab;
+
+			if( _materialOverride!=null )
 			{
-				if( _materialOverride!=null )
-				{
-					if( _widthOverride>0f )
-						Segments.Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride , _materialOverride );
-					else
-						Segments.Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _materialOverride );
-				}
+				if( _widthOverride>0f )
+					prefab = Segments.Core.GetSegmentPrefabCopy( _materialOverride , _widthOverride );
 				else
-				{
-					if( _widthOverride>0f )
-						Segments.Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab , _widthOverride );
-					else
-						Segments.Core.InstantiatePool( k_cube_vertices , out _entities , out _prefab );
-				}
+					prefab = Segments.Core.GetSegmentPrefabCopy( _materialOverride );
 			}
+			else
+			{
+				if( _widthOverride>0f )
+					prefab = Segments.Core.GetSegmentPrefabCopy( _widthOverride );
+				else
+					prefab = Segments.Core.GetSegmentPrefabCopy();
+			}
+			var sys = world.GetExistingSystem<Segments.Systems.NativeListToSegmentsSystem>();
+			sys.CreateBatch( prefab , out _segments);
 		}
 
 		void OnDestroy ()
 		{
-			_entities.Dispose();
+			_segments.Dispose();
 		}
 
 		void Update ()
 		{
 			int index = 0;
 			var bounds = _meshRenderer.bounds;
-			var commands = Segments.Core.CreateCommandBuffer();
-			Segments.Core.Upsize( ref _entities , _prefab , index+k_cube_vertices );
 			Segments.Plot.Box(
-				commands:	commands ,
-				entities:	_entities ,
+				segments:	_segments ,
 				index:		ref index ,
 				size:		bounds.size ,
 				pos:		bounds.center ,

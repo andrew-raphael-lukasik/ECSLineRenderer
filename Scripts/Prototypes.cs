@@ -15,6 +15,7 @@ namespace Segments
 		{
 			worldSystems = new System.Type[]{
 					typeof(Systems.SegmentTransformSystem)
+				,	typeof(Systems.NativeListToSegmentsSystem)
 			};
 
 			segment_components = new ComponentType[]{
