@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 using Unity.Entities;
 using Unity.Mathematics;
@@ -19,10 +18,6 @@ namespace Segments
 		static EntityArchetype segmentArchetype = default(EntityArchetype);
 		static Entity defaultPrefab;
 
-		[System.Obsolete] public static EndSimulationEntityCommandBufferSystem CommandBufferSystem { get; private set; }
-		[System.Obsolete] public static EntityCommandBuffer CreateCommandBuffer () => CommandBufferSystem.CreateCommandBuffer();
-		[System.Obsolete] public static void AddCommandBufferDependency ( JobHandle producerJob ) => CommandBufferSystem.AddJobHandleForProducer( producerJob );
-
 
 		public static World GetWorld ()
 		{
@@ -32,7 +27,6 @@ namespace Segments
 			{
 				world = World.DefaultGameObjectInjectionWorld;
 				DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( world , Prototypes.worldSystems );
-				CommandBufferSystem = world.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 				commander = world.EntityManager;
 				
 				defaultPrefab = commander.CreateEntity( GetSegmentArchetype() );
@@ -102,119 +96,6 @@ namespace Segments
 			return segmentArchetype;
 		}
 
-
-		[System.Obsolete] public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab )
-						=> InstantiatePool( length , out entities , out prefab , Prototypes.k_defaul_segment_width , Internal.ResourceProvider.default_material );
-		[System.Obsolete] public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width )
-						=> InstantiatePool( length , out entities , out prefab , width , Internal.ResourceProvider.default_material );
-		[System.Obsolete] public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , Material material )
-						=> InstantiatePool( length , out entities , out prefab , Prototypes.k_defaul_segment_width , material );
-		[System.Obsolete] public static void InstantiatePool ( int length , out NativeArray<Entity> entities , out Entity prefab , float width , Material material )
-		{
-			Initialize();
-			prefab = GetSegmentPrefabCopy();
-			{
-				if( material!=null )
-				{
-					var renderMesh = commander.GetSharedComponentData<RenderMesh>( prefab );
-					if( renderMesh.material!=material )
-					{
-						renderMesh.material = material;
-						commander.SetSharedComponentData( prefab , renderMesh );
-					}
-				}
-				else Debug.LogError($"material is null");
-				commander.SetComponentData( prefab , new SegmentWidth{ Value = (half)width } );
-			}
-			entities = commander.Instantiate( srcEntity:prefab , instanceCount:length , allocator:Allocator.Persistent );
-		}
-
-
-		/// <summary> Resizes pool length ONLY when it's != requestedLength </summary>
-		[System.Obsolete] public static void Resize ( ref NativeArray<Entity> entities , Entity prefab , int requestedLength )
-		{
-			Assert.IsTrue( entities.IsCreated );
-			int length = entities.Length;
-			if( length != requestedLength )
-			{
-				if( length < requestedLength ) Upsize( ref entities , prefab , requestedLength );
-				else if( length > requestedLength ) Downsize( ref entities , requestedLength );
-			}
-		}
-		
-
-		/// <summary> Upsizes pool length when it's < minLength </summary>
-		[System.Obsolete] public static void Upsize ( ref NativeArray<Entity> entities , Entity prefab , int minLength )
-		{
-			Assert.IsTrue( entities.IsCreated );
-			int length = entities.Length;
-			if( length < minLength )
-			{
-				int difference = minLength - length;
-
-				#if UNITY_EDITOR
-				Debug.Log($"↑ upsizing pool (length) {length} < {minLength} (minLength)");
-				#endif
-
-				NativeArray<Entity> newEntities = commander.Instantiate( srcEntity:prefab , instanceCount:difference , allocator:Allocator.Temp );
-				var resizedArray = new NativeArray<Entity>( minLength , Allocator.Persistent , NativeArrayOptions.UninitializedMemory );
-				NativeArray<Entity>.Copy( src:entities , srcIndex:0 , dst:resizedArray , dstIndex:0 , length:length );
-				NativeArray<Entity>.Copy( src:newEntities , srcIndex:0 , dst:resizedArray , dstIndex:length , length:difference );
-				entities.Dispose();
-				newEntities.Dispose();
-				entities = resizedArray;
-			}
-		}
-
-		/// <summary> Downsizes pool length when it's > maxLength </summary>
-		[System.Obsolete] public static void Downsize ( ref NativeArray<Entity> entities , int maxLength )
-		{
-			if( !entities.IsCreated ) Debug.LogError( $"{nameof(entities)}.IsCreated returns false" );
-			Assert.IsTrue( entities.IsCreated , $"{nameof(entities)}.IsCreated returns false" );
-			int length = entities.Length;
-			if( length>maxLength )
-			{
-				#if UNITY_EDITOR
-				Debug.Log($"↓ downsizing pool (length) {length} > {maxLength} (maxLength)");
-				#endif
-
-				DestroyNow( entities.Slice( maxLength , length-maxLength ) );
-
-				var oldArray = entities;
-				var resizedArray = new NativeArray<Entity>( length:maxLength , Allocator.Persistent );
-				NativeArray<Entity>.Copy( src:oldArray , srcIndex:0 , dst:resizedArray , dstIndex:0 , length:maxLength );
-				entities = resizedArray;
-				oldArray.Dispose();
-			}
-		}
-
-
-		/// <summary> Schedules DestroyEntity commands for all entities in the collection. </summary>
-		[System.Obsolete] public static void Destroy ( NativeArray<Entity> entities , EntityCommandBuffer commands )
-		{
-			if( !entities.IsCreated ) return;
-			Destroy( entities.Slice() , commands );
-		}
-		/// <summary> Schedules DestroyEntity commands for all entities in the collection. </summary>
-		[System.Obsolete] public static void Destroy ( NativeSlice<Entity> entities , EntityCommandBuffer commands )
-		{
-			for( int i=0 ; i<entities.Length ; i++ )
-				commands.DestroyEntity( entities[i] );
-		}
-
-
-		/// <summary> Destroys all entities in the collection immediately. </summary>
-		[System.Obsolete] public static void DestroyNow ( NativeArray<Entity> entities )
-		{
-			if( !entities.IsCreated ) return;
-			DestroyNow( entities.Slice() );
-		}
-		/// <summary> Destroys all entities in the collection immediately. </summary>
-		[System.Obsolete] public static void DestroyNow ( NativeSlice<Entity> entities )
-		{
-			for( int i=0 ; i<entities.Length ; i++ )
-				commander.DestroyEntity( entities[i] );
-		}
 
 		public static void DestroyAllSegments ()
 		{

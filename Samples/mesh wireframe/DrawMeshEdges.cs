@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Segments.Samples
 {
@@ -15,96 +16,121 @@ namespace Segments.Samples
 		[SerializeField] Material _materialOverride = null;
 		[SerializeField] float _widthOverride = 0.003f;
 
-		NativeArray<Entity> _entities;
-		Entity _prefab;
-		EntityManager _commandLR;
-		Vector3[] _vertices = null;
-		int2[] _edges = null;
+		NativeList<float3x2> _segments;
+		NativeArray<Vector3> _vertices;
+		NativeArray<int2> _edges;
+		Segments.NativeListToSegmentsSystem _segmentsSystem;
+		public JobHandle Dependency;
 
 
-		void Awake ()
+		void OnEnable ()
 		{
 			// create list of edges:
 			var mf = GetComponent<MeshFilter>();
 			{
 				var mesh = mf.sharedMesh;
-				_vertices = mesh.vertices;
-				_edges = ToEdges( mesh.triangles );
+				_vertices = new NativeArray<Vector3>( mesh.vertices , Allocator.Persistent );
+				var triangles = new NativeArray<int>( mesh.triangles , Allocator.TempJob );
+				var job = new ToEdgesJob{
+					triangles = triangles
+				};
+				job.Run();
+				_edges = job.results;
+				triangles.Dispose();
 			}
 
-			// make sure LR world exists:
-			var worldLR = Segments.Core.GetWorld();
-			_commandLR = worldLR.EntityManager;
+			var world = Segments.Core.GetWorld();
+			_segmentsSystem = world.GetExistingSystem<Segments.NativeListToSegmentsSystem>();
 
-			// initialize segment pool:
-			if( _entities==null || _entities.Length==0 )
+			// initialize segment list:
+			Entity prefab;
+			if( _materialOverride!=null )
 			{
-				if( _materialOverride!=null )
-				{
-					if( _widthOverride>0f )
-						Segments.Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride , _materialOverride );
-					else
-						Segments.Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _materialOverride );
-				}
-				else
-				{
-					if( _widthOverride>0f )
-						Segments.Core.InstantiatePool( _edges.Length , out _entities , out _prefab , _widthOverride );
-					else
-						Segments.Core.InstantiatePool( _edges.Length , out _entities , out _prefab );
-				}
+				if( _widthOverride>0f ) prefab = Segments.Core.GetSegmentPrefabCopy( _materialOverride , _widthOverride );
+				else prefab = Segments.Core.GetSegmentPrefabCopy( _materialOverride );
 			}
+			else
+			{
+				if( _widthOverride>0f ) prefab = Segments.Core.GetSegmentPrefabCopy( _widthOverride );
+				else prefab = Segments.Core.GetSegmentPrefabCopy();
+			}
+			_segmentsSystem.CreateBatch( prefab , out _segments );
+			_segments.Resize( _edges.Length , NativeArrayOptions.UninitializedMemory );
 		}
 
-		void OnDestroy ()
+		void OnDisable ()
 		{
-			_entities.Dispose();
+			Dependency.Complete();
+			if( _segments.IsCreated ) _segments.Dispose();
+			if( _vertices.IsCreated ) _vertices.Dispose();
+			if( _edges.IsCreated ) _edges.Dispose();
 		}
 
 		void Update ()
 		{
-			int index = 0;
-			Matrix4x4 matrix = transform.localToWorldMatrix;
-			Segments.Core.Upsize( ref _entities , _prefab , index+_edges.Length );
-			for( int i=0 ; i<_edges.Length ; i++ )
+			var job = new UpdateSegmentsJob{
+				edges		= _edges ,
+				vertices	= _vertices ,
+				matrix		= transform.localToWorldMatrix ,
+				segments	= _segments
+			};
+
+			Dependency.Complete();
+			Dependency = job.Schedule( arrayLength:_edges.Length , innerloopBatchCount:128 );
+			_segmentsSystem.Dependencies.Add( Dependency );
+		}
+
+		public struct UpdateSegmentsJob : IJobParallelFor
+		{
+			[ReadOnly] public NativeArray<int2> edges;
+			[ReadOnly] public NativeArray<Vector3> vertices;
+			[ReadOnly] public float4x4 matrix;
+			public NativeList<float3x2> segments;
+			void IJobParallelFor.Execute ( int index )
 			{
-				Entity entity = _entities[index++];
-				int2 edgeIndices = _edges[i];
-				_commandLR.SetComponentData( entity , new Segments.Segment{
-						start	= matrix.MultiplyPoint( _vertices[edgeIndices.x] ) ,
-						end		= matrix.MultiplyPoint( _vertices[edgeIndices.y] )
-				} );
+				int i0 = edges[index].x;
+				int i1 = edges[index].y;
+				float4 p0 = math.mul( matrix , new float4( vertices[i0] , 0 ) );
+				float4 p1 = math.mul( matrix , new float4( vertices[i1] , 0 ) );
+				segments[index] = new float3x2{
+						c0	= new float3{ x=p0.x , y=p0.y , z=p0.z } ,
+						c1	= new float3{ x=p1.x , y=p1.y , z=p1.z }
+				};
 			}
 		}
 
-
-		int2[] ToEdges ( int[] triangles )
+		[Unity.Burst.BurstCompile]
+		public struct ToEdgesJob : IJob
 		{
-			var edges = new Dictionary<ulong,int2>();
-			for( int i=0 ; i<triangles.Length ; i+=3 )
+			[ReadOnly] public NativeArray<int> triangles;
+			[WriteOnly] public NativeArray<int2> results;
+			void IJob.Execute ()
 			{
-				int a = triangles[i];
-				int b = triangles[i+1];
-				int c = triangles[i+2];
-				ulong hash;
-				
-				hash = (ulong)math.max(a,b)*(ulong)1e6 + (ulong)math.min(a,b);
-				if( !edges.ContainsKey(hash) )
-					edges.Add( hash , new int2(a,b) );
-				
-				hash = (ulong)math.max(b,c)*(ulong)1e6 + (ulong)math.min(b,c);
-				if( !edges.ContainsKey(hash) )
-					edges.Add( hash , new int2(b,c) );
+				var edges = new NativeHashMap<ulong,int2>( capacity:triangles.Length*3 , Allocator.Temp );
+				for( int i=0 ; i<triangles.Length ; i+=3 )
+				{
+					int a = triangles[i];
+					int b = triangles[i+1];
+					int c = triangles[i+2];
+					ulong hash;
+					
+					hash = (ulong)math.max(a,b)*(ulong)1e6 + (ulong)math.min(a,b);
+					if( !edges.ContainsKey(hash) )
+						edges.Add( hash , new int2{ x=a , y=b } );
+					
+					hash = (ulong)math.max(b,c)*(ulong)1e6 + (ulong)math.min(b,c);
+					if( !edges.ContainsKey(hash) )
+						edges.Add( hash , new int2{ x=b , y=c } );
 
-				hash = (ulong)math.max(c,a)*(ulong)1e6 + (ulong)math.min(c,a);
-				if( !edges.ContainsKey(hash) )
-					edges.Add( hash , new int2(c,a) );
+					hash = (ulong)math.max(c,a)*(ulong)1e6 + (ulong)math.min(c,a);
+					if( !edges.ContainsKey(hash) )
+						edges.Add( hash , new int2{ x=c , y=a } );
+				}
+				results = edges.GetValueArray( Allocator.Persistent );
+				edges.Dispose();
 			}
-			var results = new int2[ edges.Count ];
-			edges.Values.CopyTo( results , 0 );
-			return results;
 		}
 		
-
+		
 	}
 }

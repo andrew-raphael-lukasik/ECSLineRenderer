@@ -14,8 +14,8 @@ namespace Segments
 		static Prototypes ()
 		{
 			worldSystems = new System.Type[]{
-					typeof(Systems.SegmentTransformSystem)
-				,	typeof(Systems.NativeListToSegmentsSystem)
+					typeof(SegmentTransformSystem)
+				,	typeof(NativeListToSegmentsSystem)
 			};
 
 			segment_components = new ComponentType[]{

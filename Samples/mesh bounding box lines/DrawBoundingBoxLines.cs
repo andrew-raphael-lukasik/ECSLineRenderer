@@ -3,6 +3,7 @@
 using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Segments.Samples
 {
@@ -16,50 +17,66 @@ namespace Segments.Samples
 
 		MeshRenderer _meshRenderer = null;
 		NativeList<float3x2> _segments;
+		Segments.NativeListToSegmentsSystem _segmentsSystem;
+		public JobHandle Dependency;
 		
-		void Awake ()
+		void OnEnable ()
 		{
 			_meshRenderer = GetComponent<MeshRenderer>();
 
-			// initialize segment pool:
 			var world = Segments.Core.GetWorld();
-			var entityManager = world.EntityManager;
-			Entity prefab;
+			_segmentsSystem = world.GetExistingSystem<Segments.NativeListToSegmentsSystem>();
 
+			// initialize segment list:
+			Entity prefab;
 			if( _materialOverride!=null )
 			{
-				if( _widthOverride>0f )
-					prefab = Segments.Core.GetSegmentPrefabCopy( _materialOverride , _widthOverride );
-				else
-					prefab = Segments.Core.GetSegmentPrefabCopy( _materialOverride );
+				if( _widthOverride>0f ) prefab = Segments.Core.GetSegmentPrefabCopy( _materialOverride , _widthOverride );
+				else prefab = Segments.Core.GetSegmentPrefabCopy( _materialOverride );
 			}
 			else
 			{
-				if( _widthOverride>0f )
-					prefab = Segments.Core.GetSegmentPrefabCopy( _widthOverride );
-				else
-					prefab = Segments.Core.GetSegmentPrefabCopy();
+				if( _widthOverride>0f ) prefab = Segments.Core.GetSegmentPrefabCopy( _widthOverride );
+				else prefab = Segments.Core.GetSegmentPrefabCopy();
 			}
-			var sys = world.GetExistingSystem<Segments.Systems.NativeListToSegmentsSystem>();
-			sys.CreateBatch( prefab , out _segments);
+			_segmentsSystem.CreateBatch( prefab , out _segments );
 		}
 
-		void OnDestroy ()
+		void OnDisable ()
 		{
-			_segments.Dispose();
+			Dependency.Complete();
+			// if( _segmentsSystem!=null ) _segmentsSystem.ScheduledJobs.Complete();// crashes unity
+			if( _segments.IsCreated ) _segments.Dispose();
 		}
 
 		void Update ()
 		{
-			int index = 0;
-			var bounds = _meshRenderer.bounds;
-			Segments.Plot.Box(
-				segments:	_segments ,
-				index:		ref index ,
-				size:		bounds.size ,
-				pos:		bounds.center ,
-				rot:		quaternion.identity
-			);
+			var job = new MyJob{
+				bounds		= _meshRenderer.bounds ,
+				segments	= _segments
+			};
+
+			Dependency.Complete();
+			Dependency = job.Schedule( _segmentsSystem.ScheduledJobs );
+			_segmentsSystem.Dependencies.Add( Dependency );
+		}
+
+		public struct MyJob : IJob
+		{
+			[ReadOnly] public Bounds bounds;
+			public NativeList<float3x2> segments;
+			void IJob.Execute ()
+			{
+				int index = 0;
+				Segments.Plot.Box(
+					segments:	segments ,
+					index:		ref index ,
+					size:		bounds.size ,
+					pos:		bounds.center ,
+					rot:		quaternion.identity
+				);
+				segments.Length = index;
+			}
 		}
 
 	}
