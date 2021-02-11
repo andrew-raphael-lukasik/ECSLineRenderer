@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 using Unity.Mathematics;
 using Unity.Entities;
@@ -32,10 +31,12 @@ namespace Segments.Samples
 				_vertices = new NativeArray<Vector3>( mesh.vertices , Allocator.Persistent );
 				var triangles = new NativeArray<int>( mesh.triangles , Allocator.TempJob );
 				var job = new ToEdgesJob{
-					triangles = triangles
+					triangles = triangles.AsReadOnly() ,
+					results = new NativeList<int2>( initialCapacity:triangles.Length*3 , Allocator.Persistent )
 				};
 				job.Run();
-				_edges = job.results;
+				_edges = job.results.ToArray( Allocator.Persistent );
+				job.results.Dispose();
 				triangles.Dispose();
 			}
 
@@ -68,24 +69,25 @@ namespace Segments.Samples
 
 		void Update ()
 		{
+			Dependency.Complete();
+
 			var job = new UpdateSegmentsJob{
-				edges		= _edges ,
-				vertices	= _vertices ,
+				edges		= _edges.AsReadOnly() ,
+				vertices	= _vertices.AsReadOnly() ,
 				matrix		= transform.localToWorldMatrix ,
 				segments	= _segments
 			};
-
-			Dependency.Complete();
 			Dependency = job.Schedule( arrayLength:_edges.Length , innerloopBatchCount:128 );
+			
 			_segmentsSystem.Dependencies.Add( Dependency );
 		}
 
 		public struct UpdateSegmentsJob : IJobParallelFor
 		{
-			[ReadOnly] public NativeArray<int2> edges;
-			[ReadOnly] public NativeArray<Vector3> vertices;
+			[ReadOnly] public NativeArray<int2>.ReadOnly edges;
+			[ReadOnly] public NativeArray<Vector3>.ReadOnly vertices;
 			[ReadOnly] public float4x4 matrix;
-			public NativeList<float3x2> segments;
+			[WriteOnly] public NativeArray<float3x2> segments;
 			void IJobParallelFor.Execute ( int index )
 			{
 				int i0 = edges[index].x;
@@ -93,8 +95,8 @@ namespace Segments.Samples
 				float4 p0 = math.mul( matrix , new float4( vertices[i0] , 0 ) );
 				float4 p1 = math.mul( matrix , new float4( vertices[i1] , 0 ) );
 				segments[index] = new float3x2{
-						c0	= new float3{ x=p0.x , y=p0.y , z=p0.z } ,
-						c1	= new float3{ x=p1.x , y=p1.y , z=p1.z }
+					c0	= new float3{ x=p0.x , y=p0.y , z=p0.z } ,
+					c1	= new float3{ x=p1.x , y=p1.y , z=p1.z }
 				};
 			}
 		}
@@ -102,8 +104,8 @@ namespace Segments.Samples
 		[Unity.Burst.BurstCompile]
 		public struct ToEdgesJob : IJob
 		{
-			[ReadOnly] public NativeArray<int> triangles;
-			[WriteOnly] public NativeArray<int2> results;
+			[ReadOnly] public NativeArray<int>.ReadOnly triangles;
+			[WriteOnly] public NativeList<int2> results;
 			void IJob.Execute ()
 			{
 				var edges = new NativeHashMap<ulong,int2>( capacity:triangles.Length*3 , Allocator.Temp );
@@ -126,7 +128,7 @@ namespace Segments.Samples
 					if( !edges.ContainsKey(hash) )
 						edges.Add( hash , new int2{ x=c , y=a } );
 				}
-				results = edges.GetValueArray( Allocator.Persistent );
+				results.AddRange( edges.GetValueArray(Allocator.Temp) );
 				edges.Dispose();
 			}
 		}

@@ -52,7 +52,7 @@ namespace Segments.Samples
 		{
 			Dependency.Complete();
 
-			var job = new MyJob{
+			var job = new JustPlotABoxJob{
 				bounds		= _meshRenderer.bounds ,
 				segments	= _segments
 			};
@@ -61,7 +61,7 @@ namespace Segments.Samples
 			_segmentsSystem.Dependencies.Add( Dependency );
 		}
 
-		public struct MyJob : IJob
+		public struct JustPlotABoxJob : IJob
 		{
 			[ReadOnly] public Bounds bounds;
 			public NativeList<float3x2> segments;

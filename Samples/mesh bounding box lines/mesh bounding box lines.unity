@@ -135,7 +135,6 @@ GameObject:
   - component: {fileID: 210953413}
   - component: {fileID: 210953412}
   - component: {fileID: 210953411}
-  - component: {fileID: 210953415}
   m_Layer: 0
   m_Name: Quad
   m_TagString: Untagged
@@ -201,11 +200,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 210953410}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bbef2bb2824feaa43bf78b214959f540, type: 3}
+  m_Script: {fileID: 11500000, guid: 9dc3e2ccc981ebb4c80aad15be50713f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _materialOverride: {fileID: 2100000, guid: 2b729257d95865e4ab1ebcabf827e3c4, type: 2}
-  _widthOverride: 0.01
+  _materialOverride: {fileID: 2100000, guid: 4f235d8deba0a24499d2f04cc883b7da, type: 2}
+  _widthOverride: 0.006
 --- !u!4 &210953414
 Transform:
   m_ObjectHideFlags: 0
@@ -220,19 +219,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: -72.889, y: 274.67902, z: -346.481}
---- !u!114 &210953415
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 210953410}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 542626617f0aa574f93bc0a4f63e9069, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _onDrawGizmos: 0
 --- !u!1 &361519742
 GameObject:
   m_ObjectHideFlags: 0
@@ -324,11 +310,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 361519742}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bbef2bb2824feaa43bf78b214959f540, type: 3}
+  m_Script: {fileID: 11500000, guid: 9dc3e2ccc981ebb4c80aad15be50713f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _materialOverride: {fileID: 2100000, guid: 2b729257d95865e4ab1ebcabf827e3c4, type: 2}
-  _widthOverride: 0.01
+  _materialOverride: {fileID: 2100000, guid: 4f235d8deba0a24499d2f04cc883b7da, type: 2}
+  _widthOverride: 0.006
 --- !u!1 &798878838
 GameObject:
   m_ObjectHideFlags: 0
@@ -406,11 +392,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 798878838}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bbef2bb2824feaa43bf78b214959f540, type: 3}
+  m_Script: {fileID: 11500000, guid: 9dc3e2ccc981ebb4c80aad15be50713f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _materialOverride: {fileID: 2100000, guid: 2b729257d95865e4ab1ebcabf827e3c4, type: 2}
-  _widthOverride: 0.01
+  _materialOverride: {fileID: 2100000, guid: 4f235d8deba0a24499d2f04cc883b7da, type: 2}
+  _widthOverride: 0.006
 --- !u!4 &798878842
 Transform:
   m_ObjectHideFlags: 0
@@ -502,11 +488,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1164825327}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bbef2bb2824feaa43bf78b214959f540, type: 3}
+  m_Script: {fileID: 11500000, guid: 9dc3e2ccc981ebb4c80aad15be50713f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _materialOverride: {fileID: 2100000, guid: 2b729257d95865e4ab1ebcabf827e3c4, type: 2}
-  _widthOverride: 0.01
+  _materialOverride: {fileID: 2100000, guid: 4f235d8deba0a24499d2f04cc883b7da, type: 2}
+  _widthOverride: 0.006
 --- !u!4 &1164825331
 Transform:
   m_ObjectHideFlags: 0
@@ -547,10 +533,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1640000940}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 542626617f0aa574f93bc0a4f63e9069, type: 3}
+  m_Script: {fileID: 11500000, guid: a5f586f27283e1b4daf6df097011362e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _onDrawGizmos: 0
+  _onDrawGizmos: 1
 --- !u!4 &1640000942
 Transform:
   m_ObjectHideFlags: 0

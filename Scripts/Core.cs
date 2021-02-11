@@ -46,7 +46,7 @@ namespace Segments
 				#endif
 
 				#if DEBUG
-				Debug.Log($"{nameof(Segments)}: systems initialized");
+				Debug.Log($"{nameof(Segments)}' systems initialized");
 				#endif
 
 				return world;
