@@ -7,7 +7,6 @@ namespace Segments.Internal
 
 		public static Mesh default_mesh { get; private set; }
 		public static Material default_material { get; private set; }
-		public static SegmentMaterialOverride default_segment_material { get; private set; }
 
 		static ResourceProvider ()
 		{
@@ -31,9 +30,6 @@ namespace Segments.Internal
 					default_material.hideFlags = HideFlags.DontUnloadUnusedAsset;
 				else
 					Debug.LogWarning($"loading Material asset failed, path: \'{path}\'");
-
-				// create default segement material:
-				default_segment_material = default_material;
 			}
 		}
 
