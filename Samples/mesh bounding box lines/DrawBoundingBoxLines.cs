@@ -45,19 +45,19 @@ namespace Segments.Samples
 		void OnDisable ()
 		{
 			Dependency.Complete();
-			// if( _segmentsSystem!=null ) _segmentsSystem.ScheduledJobs.Complete();// crashes unity
 			if( _segments.IsCreated ) _segments.Dispose();
 		}
 
 		void Update ()
 		{
+			Dependency.Complete();
+
 			var job = new MyJob{
 				bounds		= _meshRenderer.bounds ,
 				segments	= _segments
 			};
 
-			Dependency.Complete();
-			Dependency = job.Schedule( _segmentsSystem.ScheduledJobs );
+			Dependency = job.Schedule();
 			_segmentsSystem.Dependencies.Add( Dependency );
 		}
 

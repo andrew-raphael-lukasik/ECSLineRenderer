@@ -67,18 +67,18 @@ namespace Segments
 			for( int batchIndex=_batches.Count-1 ; batchIndex!=-1 ; batchIndex-- )
 			{
 				var batch = _batches[ batchIndex ];
-				Entity prefab = batch.prefab;
 				NativeList<float3x2> buffer = batch.buffer;
 				NativeList<Entity> entities = batch.entities;
 
 				if( buffer.IsCreated )
 				{
-					int bufferSize = buffer.AsParallelReader().Length;
+					// int bufferSize = buffer.Length;// throws dependency errors
+					int bufferSize = buffer.AsParallelReader().Length;// is this a wrong hack?
 					if( entities.Length!=bufferSize )
 					{
 						if( entities.Length<bufferSize )
 						{
-							NativeArray<Entity> instantiated = EntityManager.Instantiate( prefab , bufferSize-entities.Length , Allocator.Temp );
+							NativeArray<Entity> instantiated = EntityManager.Instantiate( batch.prefab , bufferSize-entities.Length , Allocator.Temp );
 							entities.AddRange( instantiated );
 							instantiated.Dispose();
 						}
@@ -91,8 +91,7 @@ namespace Segments
 					
 					Job
 						.WithName("component_data_update_job")
-						.WithReadOnly( buffer )
-						.WithNativeDisableContainerSafetyRestriction( buffer )
+						.WithReadOnly( buffer ).WithNativeDisableContainerSafetyRestriction( buffer )
 						.WithCode( () =>
 						{
 							for( int i=0 ; i<bufferSize ; i++ )

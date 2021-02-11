@@ -55,7 +55,7 @@ namespace Segments.Samples
 				else prefab = Segments.Core.GetSegmentPrefabCopy();
 			}
 			_segmentsSystem.CreateBatch( prefab , out _segments );
-			_segments.Resize( _edges.Length , NativeArrayOptions.UninitializedMemory );
+			_segments.Length = _edges.Length;
 		}
 
 		void OnDisable ()

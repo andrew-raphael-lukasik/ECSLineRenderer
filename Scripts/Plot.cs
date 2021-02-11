@@ -16,7 +16,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + numSegments;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 			
 			float theta = ( 2f * math.PI ) / (float)numSegments;
 			for( int i=0 ; i<numSegments ; i++ )
@@ -47,7 +47,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + numSegments;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			float a = math.max(rx,ry);
 			float b = math.min(rx,ry);
@@ -75,7 +75,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + numSegments;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			float theta = ( 2f * math.PI ) / (float)numSegments;
 			for( int i=0 ; i<numSegments ; i++ )
@@ -95,7 +95,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + 1;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			segments[index++] = new float3x2{ c0=start , c1=end };
 		}
@@ -107,7 +107,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + math.max( numDashes , 0 );
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			int max = math.max( numDashes*2-1 , 0 );
 			for( int i=0 ; i<max ; i+=2 )
@@ -126,7 +126,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + 4;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 			
 			float d = math.distance( p1 , p2 );
 			float3 v1 = new float3{ x=p1.x , y=p1.y };
@@ -146,7 +146,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + 4;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			float3 arrowLen = math.normalize(v1-v2) * math.distance(v1,v2) * 0.06f;
 			float3 camAxis = math.normalize( v2 - cameraPos );
@@ -170,7 +170,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + numSegments;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			float c = math.sqrt( a*a + b*b );
 			float2 vertex = new float2{ y=a };
@@ -198,7 +198,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + numSegments + 2;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			float Asymptote ( float x ) => (b/a)*x;
 			float c = math.sqrt( a*a + b*b );
@@ -252,7 +252,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + numSegments + 1;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			const float c = 0;
 			float2 vertex = new float2{ x = -b / (2 * a) , y = ((4 * a * c) - (b * b)) / (4 * a) };
@@ -286,7 +286,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + numSegments + 1;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			const float c = 0;
 			float2 vertex = new float2{ x = -b / (2 * a) , y = ((4 * a * c) - (b * b)) / (4 * a) };
@@ -319,7 +319,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + 12;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			float f = a * 0.5f;
 			float3 B0 = math.mul( rot , new float3{ x=f , y=-f , z=-f } );
@@ -355,7 +355,7 @@ namespace Segments
 		)
 		{
 			int bufferSizeRequired = index + 12;
-			if( segments.Length<bufferSizeRequired ) segments.Resize( bufferSizeRequired , NativeArrayOptions.UninitializedMemory );
+			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
 			float3 f = size * 0.5f;
 			float3 B0 = math.mul( rot , new float3{ x=f.x , y=-f.y , z=-f.z } );
