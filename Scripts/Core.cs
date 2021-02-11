@@ -14,7 +14,7 @@ namespace Segments
 	{
 
 		static World world;
-		static EntityManager commander;
+		static EntityManager entityManager;
 		static EntityArchetype segmentArchetype = default(EntityArchetype);
 		static Entity defaultPrefab;
 
@@ -27,22 +27,22 @@ namespace Segments
 			{
 				world = World.DefaultGameObjectInjectionWorld;
 				DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups( world , Prototypes.worldSystems );
-				commander = world.EntityManager;
+				entityManager = world.EntityManager;
 				
-				defaultPrefab = commander.CreateEntity( GetSegmentArchetype() );
-				commander.SetComponentData<Segment>( defaultPrefab , Prototypes.segment );
-				commander.SetComponentData<SegmentWidth>( defaultPrefab , Prototypes.segmentWidth );
-				commander.SetComponentData<SegmentAspectRatio>( defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
-				commander.AddComponentData<RenderBounds>( defaultPrefab , Prototypes.renderBounds );
-				commander.AddComponentData<LocalToWorld>( defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
+				defaultPrefab = entityManager.CreateEntity( GetSegmentArchetype() );
+				entityManager.SetComponentData<Segment>( defaultPrefab , Prototypes.segment );
+				entityManager.SetComponentData<SegmentWidth>( defaultPrefab , Prototypes.segmentWidth );
+				entityManager.SetComponentData<SegmentAspectRatio>( defaultPrefab , new SegmentAspectRatio{ Value = 1f } );
+				entityManager.AddComponentData<RenderBounds>( defaultPrefab , Prototypes.renderBounds );
+				entityManager.AddComponentData<LocalToWorld>( defaultPrefab , new LocalToWorld { Value = float4x4.TRS( new float3{} , quaternion.identity , new float3{x=1,y=1,z=1} ) });
 				
 				var renderMesh = Prototypes.renderMesh;
-				commander.SetSharedComponentData<RenderMesh>( defaultPrefab , renderMesh );
+				entityManager.SetSharedComponentData<RenderMesh>( defaultPrefab , renderMesh );
 				// commander.SetComponentData<MaterialColor>( _defaultPrefab , new MaterialColor{ Value=new float4{x=1,y=1,z=1,w=1} } );// change: initialize manually
 				
 				#if ENABLE_HYBRID_RENDERER_V2
-				commander.SetComponentData( defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
-				commander.SetComponentData( defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
+				entityManager.SetComponentData( defaultPrefab , new BuiltinMaterialPropertyUnity_RenderingLayer{ Value = new uint4{ x=(uint)renderMesh.layer } } );
+				entityManager.SetComponentData( defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
 				#endif
 
 				#if DEBUG
@@ -53,36 +53,32 @@ namespace Segments
 			}
 		}
 		
-		
-		public static EntityManager GetEntityManager ()
-			=> GetWorld().EntityManager;
-		
 
 		public static Entity GetSegmentPrefabCopy ()
 		{
 			Initialize();
-			Entity copy = commander.Instantiate( defaultPrefab );
-			commander.AddComponent<Prefab>( copy );
+			Entity copy = entityManager.Instantiate( defaultPrefab );
+			entityManager.AddComponent<Prefab>( copy );
 			return copy;
 		}
 		public static Entity GetSegmentPrefabCopy ( Material material )
 		{
 			Entity copy = GetSegmentPrefabCopy();
-			var renderMesh = commander.GetSharedComponentData<RenderMesh>( copy );
+			var renderMesh = entityManager.GetSharedComponentData<RenderMesh>( copy );
 			renderMesh.material = material;
-			commander.SetSharedComponentData<RenderMesh>( copy , renderMesh );
+			entityManager.SetSharedComponentData<RenderMesh>( copy , renderMesh );
 			return copy;
 		}
 		public static Entity GetSegmentPrefabCopy ( float width )
 		{
 			Entity copy = GetSegmentPrefabCopy();
-			commander.SetComponentData( copy , new SegmentWidth{ Value=(half)width } );
+			entityManager.SetComponentData( copy , new SegmentWidth{ Value=(half)width } );
 			return copy;
 		}
 		public static Entity GetSegmentPrefabCopy ( Material material , float width )
 		{
 			Entity copy = GetSegmentPrefabCopy( material );
-			commander.SetComponentData( copy , new SegmentWidth{ Value=(half)width } );
+			entityManager.SetComponentData( copy , new SegmentWidth{ Value=(half)width } );
 			return copy;
 		}
 
@@ -92,15 +88,15 @@ namespace Segments
 			if( segmentArchetype.Valid )
 				return segmentArchetype;
 			
-			segmentArchetype = commander.CreateArchetype( Prototypes.segment_prefab_components );
+			segmentArchetype = entityManager.CreateArchetype( Prototypes.segment_prefab_components );
 			return segmentArchetype;
 		}
 
 
 		public static void DestroyAllSegments ()
 		{
-			var query = commander.CreateEntityQuery( new ComponentType[]{ typeof(Segment) } );
-			commander.DestroyEntity( query );
+			var query = entityManager.CreateEntityQuery( new ComponentType[]{ typeof(Segment) } );
+			entityManager.DestroyEntity( query );
 		}
 
 
