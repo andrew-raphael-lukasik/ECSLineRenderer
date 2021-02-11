@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Assertions = UnityEngine.Assertions;
 using Debug = UnityEngine.Debug;
+using UnityEngine.Assertions;
 
 using Unity.Collections;
 using Unity.Entities;
@@ -43,10 +43,7 @@ namespace Segments
 					EntityManager.DestroyEntity( batch.entities );
 					batch.entities.Dispose();
 				}
-				if( batch.buffer.IsCreated )
-				{
-					batch.buffer.Dispose();
-				}
+				// if( batch.buffer.IsCreated ) batch.buffer.Dispose();// don't - it's not my responsibility
 			}
 			_batches.Clear();
 		}
@@ -124,23 +121,6 @@ namespace Segments
 			var entities = new NativeList<Entity>( Allocator.Persistent );
 			_batches.Add( new Batch{ prefab=segmentPrefab , entities=entities , buffer=buffer } );
 		}
-
-
-		public void DestroyBatch ( NativeList<float3x2> buffer )
-		{
-			throw new System.NotImplementedException();
-			// for( int i=_batches.Count-1 ; i!=-1 ; i-- )
-			// {
-			// 	var batch = _batches[i];
-			// 	if( batch.buffer==buffer )
-			// 	{
-			// 		EntityManager.DestroyEntity( batch.entities );
-			// 		batch.entities.Dispose();
-			// 		batch.buffer.Dispose();
-			// 		_batches.RemoveAt( i );
-			// 	}
-			// }
-		}
 		
 
 		struct Batch
@@ -152,5 +132,4 @@ namespace Segments
 
 
 	}
-	
 }
