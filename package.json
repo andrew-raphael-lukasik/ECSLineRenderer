@@ -1,15 +1,15 @@
 {
-  "name": "com.andrewraphaellukasik.ecslinerenderer",
+  "name": "com.andrewraphaellukasik.segments",
   "author": {
-    "name": "Andrzej Rafał Łukasik",
+    "name": "Andrzej Rafa\u0142 \u0141ukasik",
     "email": "andrew.r.lukasik@gmail.com",
     "url": "https://github.com/andrew-raphael-lukasik"
   },
-  "displayName": "ECS LineRenderer",
+  "displayName": "Segments",
   "version": "2020.1.1",
   "unity": "2020.1",
-  "description": "DOTS line rendering solution",
-  "documentationUrl": "https://github.com/andrew-raphael-lukasik/ECSLineRenderer",
+  "description": "Line rendering for Dots tech stack",
+  "documentationUrl": "https://github.com/andrew-raphael-lukasik/Segments",
   "dependencies": {
     "com.unity.entities": "0.14.0-preview.19",
     "com.unity.rendering.hybrid": "0.8.0-preview.19"

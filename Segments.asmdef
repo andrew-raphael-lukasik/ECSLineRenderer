@@ -1,5 +1,6 @@
 {
-    "name": "ECSLineRenderer",
+    "name": "Segments",
+    "rootNamespace": "",
     "references": [
         "Unity.Burst",
         "Unity.Collections",
