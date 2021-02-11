@@ -14,7 +14,7 @@ namespace Segments.Internal
 			// load default mesh asset:
 			if( default_mesh==null )
 			{
-				const string path = "ECSLineRenderer/default-mesh";
+				const string path = "packages/Segments/default-mesh";
 				default_mesh = UnityEngine.Resources.Load<Mesh>( path );
 				if( default_mesh!=null )
 					default_mesh.hideFlags = HideFlags.DontUnloadUnusedAsset;
@@ -25,7 +25,7 @@ namespace Segments.Internal
 			// load default material asset:
 			if( default_material==null )
 			{
-				const string path = "ECSLineRenderer/default-line";
+				const string path = "packages/Segments/default-line";
 				default_material = UnityEngine.Resources.Load<Material>( path );
 				if( default_material!=null )
 					default_material.hideFlags = HideFlags.DontUnloadUnusedAsset;
