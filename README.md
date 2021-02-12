@@ -1,5 +1,7 @@
+# [System.Obsolete( "replace with https://github.com/andrew-raphael-lukasik/Segments" )]
+
 # ECSLineRenderer
-Line renderer for Unity.Entities tech stack
+Line renderer for Unity.Entities tech stack. Heavily modified fork of https://github.com/5argon/ECSLineRenderer.
 
 # requirements
 - for built-in shader:
