@@ -72,7 +72,7 @@ namespace Segments.Samples
 			void IJob.Execute ()
 			{
 				Segments.Plot.Box(
-					segments:	segments.Slice( start:0 , length:4 ) ,
+					segments:	segments.Slice( start:0 , length:12 ) ,
 					size:		bounds.size ,
 					pos:		bounds.center ,
 					rot:		quaternion.identity

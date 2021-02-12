@@ -1,18 +1,18 @@
-﻿using UnityEngine.Assertions;
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 using Unity.Collections;
 
 namespace Segments
 {
 	public static class Plot
 	{
-		
+
+
 
 		public static void Ellipse (
 			NativeList<float3x2> segments , ref int index ,
 			float rx , float ry ,
 			float3 pos , quaternion rot ,
-			int numSegments = 128
+			int numSegments
 		)
 		{
 			int bufferSizeRequired = index + numSegments;
@@ -39,11 +39,13 @@ namespace Segments
 			// foci( pos + math.mul(rot,-focus) );
 		}
 
+
+
 		public static void EllipseAtFoci (
 			NativeList<float3x2> segments , ref int index ,
 			float rx , float ry ,
 			float3 pos , quaternion rot ,
-			int numSegments = 128
+			int numSegments
 		)
 		{
 			int bufferSizeRequired = index + numSegments;
@@ -68,15 +70,39 @@ namespace Segments
 		}
 
 
+
+		/// <summary> Plots a circle. </summary>
+		/// <remarks> Will add list elements if necessary. </remarks>
 		public static void Circle (
 			NativeList<float3x2> segments , ref int index ,
 			float r , float3 pos , quaternion rot ,
-			int numSegments = 128
+			int numSegments
 		)
 		{
 			int bufferSizeRequired = index + numSegments;
 			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
+			Circle( segments.AsArray().Slice(index,numSegments) , r , pos , rot , numSegments );
+			index = bufferSizeRequired;
+		}
+
+		/// <inheritdoc/> <remarks> Will does nothing if array is too short. </remarks>
+		public static void Circle (
+			NativeArray<float3x2> segments , ref int index ,
+			float r , float3 pos , quaternion rot ,
+			int numSegments
+		)
+		{
+			int bufferSizeRequired = index + numSegments;
+			if( segments.Length<bufferSizeRequired ) return;
+
+			Circle( segments.Slice(index,numSegments) , r , pos , rot , numSegments );
+			index = bufferSizeRequired;
+		}
+
+		/// <inheritdoc/> <remarks> Will throw exception if length < numSegments. </remarks>
+		public static void Circle ( NativeSlice<float3x2> segments , float r , float3 pos , quaternion rot , int numSegments )
+		{
 			float theta = ( 2f * math.PI ) / (float)numSegments;
 			for( int i=0 ; i<numSegments ; i++ )
 			{
@@ -84,11 +110,13 @@ namespace Segments
 				float f1 = theta * (float)(i+1);
 				float3 v0 = math.mul( rot , ( new float3{ x=math.cos(f0) , y=math.sin(f0) } * r ) );
 				float3 v1 = math.mul( rot , ( new float3{ x=math.cos(f1) , y=math.sin(f1) } * r ) );
-				segments[index++] = new float3x2{ c0 = pos+v0 , c1 = pos+v1 };
+				segments[i] = new float3x2{ c0 = pos+v0 , c1 = pos+v1 };
 			}
 		}
 
 
+
+		/// <summary> Just fills a single segment value. </summary>
 		public static void Line (
 			NativeList<float3x2> segments , ref int index ,
 			float3 start , float3 end
@@ -99,6 +127,23 @@ namespace Segments
 
 			segments[index++] = new float3x2{ c0=start , c1=end };
 		}
+		
+		/// <inheritdoc/> <remarks> Will does nothing if array is too short. </remarks>
+		public static void Line (
+			NativeArray<float3x2> segments , ref int index ,
+			float3 start , float3 end
+		)
+		{
+			int bufferSizeRequired = index + 1;
+			if( segments.Length<bufferSizeRequired ) return;
+
+			segments[index++] = new float3x2{ c0=start , c1=end };
+		}
+
+		/// <inheritdoc/> <remarks> Will throw exception if length < 1. </remarks>
+		public static void Line ( NativeSlice<float3x2> segments , float3 start , float3 end )
+			=> segments[0] = new float3x2{ c0=start , c1=end };
+
 
 
 		public static void DashedLine (
@@ -118,6 +163,7 @@ namespace Segments
 				};
 			}
 		}
+
 
 
 		public static void Arrow (
@@ -140,6 +186,7 @@ namespace Segments
 			segments[index++] = new float3x2{ c0=v3 , c1=v4 };
 			segments[index++] = new float3x2{ c0=v4 , c1=v2 };
 		}
+
 		public static void Arrow (
 			NativeList<float3x2> segments , ref int index ,
 			float3 v1 , float3 v2 , float3 cameraPos
@@ -160,13 +207,14 @@ namespace Segments
 		}
 
 
+
 		/// <param name="a"> +-y = ( b * math.sqrt( **a**^2 + x^2 ) ) / **a** </param>
 		/// <param name="b"> +-y = ( **b** * math.sqrt( a^2 + x^2 ) ) / a </param>
 		public static void HyperbolaAtFoci (
 			NativeList<float3x2> segments , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
-			int numSegments = 128
+			int numSegments
 		)
 		{
 			int bufferSizeRequired = index + numSegments;
@@ -188,13 +236,15 @@ namespace Segments
 			}
 		}
 
+
+
 		/// <param name="a"> +-y = ( b * math.sqrt( **a**^2 + x^2 ) ) / **a** </param>
 		/// <param name="b"> +-y = ( **b** * math.sqrt( a^2 + x^2 ) ) / a </param>
 		public static void Hyperbola (
 			NativeList<float3x2> segments , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
-			int numSegments = 128
+			int numSegments
 		)
 		{
 			int bufferSizeRequired = index + numSegments + 2;
@@ -248,7 +298,7 @@ namespace Segments
 			float a , float b ,
 			float xmin , float xmax ,
 			float3 pos , quaternion rot ,
-			int numSegments = 128
+			int numSegments
 		)
 		{
 			int bufferSizeRequired = index + numSegments + 1;
@@ -275,6 +325,8 @@ namespace Segments
 			};
 		}
 
+
+
 		/// <param name="a"> y = **a**xx + bx + c </param>
 		/// <param name="b"> y = axx + **b**x + c </param>
 		/// <param name="c"> y = axx + bx + **c** </param>
@@ -282,7 +334,7 @@ namespace Segments
 			NativeList<float3x2> segments , ref int index ,
 			float a , float b , float xrange ,
 			float3 pos , quaternion rot ,
-			int numSegments = 128
+			int numSegments
 		)
 		{
 			int bufferSizeRequired = index + numSegments + 1;
