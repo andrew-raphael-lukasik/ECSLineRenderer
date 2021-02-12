@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Segments
 {
-	[WorldSystemFilter(0)]
+	[WorldSystemFilter( WorldSystemFilterFlags.Default )]
 	[UpdateInGroup( typeof(InitializationSystemGroup) )]
 	public class SegmentTransformSystem : SystemBase
 	{

@@ -1,5 +1,5 @@
-﻿using Unity.Mathematics;
-using Unity.Entities;
+﻿using UnityEngine.Assertions;
+using Unity.Mathematics;
 using Unity.Collections;
 
 namespace Segments
@@ -312,43 +312,23 @@ namespace Segments
 		}
 
 
-		/// <summary> 12 segments </summary>
-		public static void Cube (
-			NativeList<float3x2> segments , ref int index ,
-			float a , float3 pos , quaternion rot
-		)
-		{
-			int bufferSizeRequired = index + 12;
-			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
-			float f = a * 0.5f;
-			float3 B0 = math.mul( rot , new float3{ x=f , y=-f , z=-f } );
-			float3 B1 = math.mul( rot , new float3{ x=-f , y=-f , z=-f } );
-			float3 B2 = math.mul( rot , new float3{ x=-f , y=-f , z=f } );
-			float3 B3 = math.mul( rot , new float3{ x=f , y=-f , z=f } );
-			float3 T0 = math.mul( rot , new float3{ x=f , y=f , z=-f } );
-			float3 T1 = math.mul( rot , new float3{ x=-f , y=f , z=-f } );
-			float3 T2 = math.mul( rot , new float3{ x=-f , y=f , z=f } );
-			float3 T3 = math.mul( rot , new float3{ x=f , y=f , z=f } );
-
-			segments[index++] = new float3x2{ c0=pos+B0 , c1=pos+B1 };
-			segments[index++] = new float3x2{ c0=pos+B1 , c1=pos+B2 };
-			segments[index++] = new float3x2{ c0=pos+B2 , c1=pos+B3 };
-			segments[index++] = new float3x2{ c0=pos+B3 , c1=pos+B0 };
-
-			segments[index++] = new float3x2{ c0=pos+T0 , c1=pos+T1 };
-			segments[index++] = new float3x2{ c0=pos+T1 , c1=pos+T2 };
-			segments[index++] = new float3x2{ c0=pos+T2 , c1=pos+T3 };
-			segments[index++] = new float3x2{ c0=pos+T3 , c1=pos+T0 };
-
-			segments[index++] = new float3x2{ c0=pos+B0 , c1=pos+T0 };
-			segments[index++] = new float3x2{ c0=pos+B1 , c1=pos+T1 };
-			segments[index++] = new float3x2{ c0=pos+B2 , c1=pos+T2 };
-			segments[index++] = new float3x2{ c0=pos+B3 , c1=pos+T3 };
-		}
+		/// <summary> Plots a cube with 12 segments. </summary>
+		public static void Cube ( NativeList<float3x2> segments , ref int index , float a , float3 pos , quaternion rot )
+			=> Box( segments , ref index , new float3{x=a,y=a,z=a} , pos , rot );
+		
+		/// <inheritdoc/> <remarks> Will does nothing if array is too short. </remarks>
+		public static void Cube ( NativeArray<float3x2> segments , ref int index , float a , float3 pos , quaternion rot )
+			=> Box( segments , ref index , new float3{x=a,y=a,z=a} , pos , rot );
+		
+		/// <inheritdoc/> <remarks> Will throw exception if length < 12. </remarks>
+		public static void Cube ( NativeSlice<float3x2> segments , float a , float3 pos , quaternion rot )
+			=> Box( segments , new float3{x=a,y=a,z=a} , pos , rot );
 
 
-		/// <summary> 12 segments </summary>
+
+		/// <summary> Plots a box with 12 segments. </summary>
+		/// <remarks> Will add list elements if necessary. </remarks>
 		public static void Box (
 			NativeList<float3x2> segments , ref int index ,
 			float3 size , float3 pos , quaternion rot
@@ -357,6 +337,29 @@ namespace Segments
 			int bufferSizeRequired = index + 12;
 			if( segments.Length<bufferSizeRequired ) segments.Length = bufferSizeRequired;
 
+			Box( segments.AsArray().Slice(index,12) , size , pos , rot );
+			index = bufferSizeRequired;
+		}
+
+		/// <inheritdoc/> <remarks> Will does nothing if array is too short. </remarks>
+		public static void Box (
+			NativeArray<float3x2> segments , ref int index ,
+			float3 size , float3 pos , quaternion rot
+		)
+		{
+			int bufferSizeRequired = index + 12;
+			if( segments.Length<bufferSizeRequired ) return;
+
+			Box( segments.Slice(index,12) , size , pos , rot );
+			index = bufferSizeRequired;
+		}
+
+		/// <inheritdoc/> <remarks> Will throw exception if length < 12. </remarks>
+		public static void Box (
+			NativeSlice<float3x2> segments ,
+			float3 size , float3 pos , quaternion rot
+		)
+		{
 			float3 f = size * 0.5f;
 			float3 B0 = math.mul( rot , new float3{ x=f.x , y=-f.y , z=-f.z } );
 			float3 B1 = math.mul( rot , new float3{ x=-f.x , y=-f.y , z=-f.z } );
@@ -367,21 +370,22 @@ namespace Segments
 			float3 T2 = math.mul( rot , new float3{ x=-f.x , y=f.y , z=f.z } );
 			float3 T3 = math.mul( rot , new float3{ x=f.x , y=f.y , z=f.z } );
 			
-			segments[index++] = new float3x2{ c0=pos+B0 , c1=pos+B1 };
-			segments[index++] = new float3x2{ c0=pos+B1 , c1=pos+B2 };
-			segments[index++] = new float3x2{ c0=pos+B2 , c1=pos+B3 };
-			segments[index++] = new float3x2{ c0=pos+B3 , c1=pos+B0 };
+			segments[0] = new float3x2{ c0=pos+B0 , c1=pos+B1 };
+			segments[1] = new float3x2{ c0=pos+B1 , c1=pos+B2 };
+			segments[2] = new float3x2{ c0=pos+B2 , c1=pos+B3 };
+			segments[3] = new float3x2{ c0=pos+B3 , c1=pos+B0 };
 
-			segments[index++] = new float3x2{ c0=pos+T0 , c1=pos+T1 };
-			segments[index++] = new float3x2{ c0=pos+T1 , c1=pos+T2 };
-			segments[index++] = new float3x2{ c0=pos+T2 , c1=pos+T3 };
-			segments[index++] = new float3x2{ c0=pos+T3 , c1=pos+T0 };
+			segments[4] = new float3x2{ c0=pos+T0 , c1=pos+T1 };
+			segments[5] = new float3x2{ c0=pos+T1 , c1=pos+T2 };
+			segments[6] = new float3x2{ c0=pos+T2 , c1=pos+T3 };
+			segments[7] = new float3x2{ c0=pos+T3 , c1=pos+T0 };
 
-			segments[index++] = new float3x2{ c0=pos+B0 , c1=pos+T0 };
-			segments[index++] = new float3x2{ c0=pos+B1 , c1=pos+T1 };
-			segments[index++] = new float3x2{ c0=pos+B2 , c1=pos+T2 };
-			segments[index++] = new float3x2{ c0=pos+B3 , c1=pos+T3 };
+			segments[8] = new float3x2{ c0=pos+B0 , c1=pos+T0 };
+			segments[9] = new float3x2{ c0=pos+B1 , c1=pos+T1 };
+			segments[10] = new float3x2{ c0=pos+B2 , c1=pos+T2 };
+			segments[11] = new float3x2{ c0=pos+B3 , c1=pos+T3 };
 		}
+
 
 
 	}

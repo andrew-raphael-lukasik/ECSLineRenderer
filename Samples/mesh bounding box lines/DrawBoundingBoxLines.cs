@@ -16,8 +16,8 @@ namespace Segments.Samples
 		[SerializeField] float _widthOverride = 0.003f;
 
 		MeshRenderer _meshRenderer = null;
-		NativeList<float3x2> _segments;
-		Segments.NativeListToSegmentsSystem _segmentsSystem;
+		NativeArray<float3x2> _segments;
+		Segments.NativeArrayToSegmentsSystem _segmentsSystem;
 		public JobHandle Dependency;
 		
 		void OnEnable ()
@@ -25,7 +25,7 @@ namespace Segments.Samples
 			_meshRenderer = GetComponent<MeshRenderer>();
 
 			var world = Segments.Core.GetWorld();
-			_segmentsSystem = world.GetExistingSystem<Segments.NativeListToSegmentsSystem>();
+			_segmentsSystem = world.GetExistingSystem<Segments.NativeArrayToSegmentsSystem>();
 
 			// initialize segment list:
 			Entity prefab;
@@ -39,7 +39,11 @@ namespace Segments.Samples
 				if( _widthOverride>0f ) prefab = Segments.Core.GetSegmentPrefabCopy( _widthOverride );
 				else prefab = Segments.Core.GetSegmentPrefabCopy();
 			}
-			_segmentsSystem.CreateBatch( prefab , out _segments );
+			_segmentsSystem.CreateBatch(
+				segmentPrefab:	prefab ,
+				length:			12 ,// box is 12 segments
+				buffer:			out _segments
+			);
 		}
 
 		void OnDisable ()
@@ -64,18 +68,15 @@ namespace Segments.Samples
 		public struct JustPlotABoxJob : IJob
 		{
 			[ReadOnly] public Bounds bounds;
-			public NativeList<float3x2> segments;
+			public NativeArray<float3x2> segments;
 			void IJob.Execute ()
 			{
-				int index = 0;
 				Segments.Plot.Box(
-					segments:	segments ,
-					index:		ref index ,
+					segments:	segments.Slice( start:0 , length:4 ) ,
 					size:		bounds.size ,
 					pos:		bounds.center ,
 					rot:		quaternion.identity
 				);
-				segments.Length = index;
 			}
 		}
 

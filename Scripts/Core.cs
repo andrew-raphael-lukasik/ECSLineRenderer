@@ -45,10 +45,6 @@ namespace Segments
 				entityManager.SetComponentData( defaultPrefab , new BuiltinMaterialPropertyUnity_LightData{ Value = new float4{ z=1 } } );
 				#endif
 
-				#if DEBUG
-				Debug.Log($"{nameof(Segments)}' systems initialized");
-				#endif
-
 				return world;
 			}
 		}

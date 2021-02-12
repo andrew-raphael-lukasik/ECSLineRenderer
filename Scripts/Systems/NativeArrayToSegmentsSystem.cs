@@ -12,7 +12,7 @@ namespace Segments
 {
 	[WorldSystemFilter(0)]
 	[UpdateInGroup( typeof(InitializationSystemGroup) )]
-	public class NativeListToSegmentsSystem : SystemBase
+	public class NativeArrayToSegmentsSystem : SystemBase
 	{
 		
 		EndSimulationEntityCommandBufferSystem _endSimulationEcbSystem;
@@ -64,43 +64,19 @@ namespace Segments
 			for( int batchIndex=_batches.Count-1 ; batchIndex!=-1 ; batchIndex-- )
 			{
 				var batch = _batches[ batchIndex ];
-				NativeList<float3x2> buffer = batch.buffer;
-				NativeList<Entity> entities = batch.entities;
+				NativeArray<float3x2> buffer = batch.buffer;
+				NativeArray<Entity> entities = batch.entities;
+				int length = batch.length;
 
 				if( buffer.IsCreated )
 				{
-					// int bufferSize = buffer.Length;// throws dependency errors
-					int bufferSize = buffer.AsParallelReader().Length;// is this a wrong hack?
-					if( entities.Length!=bufferSize )
-					{
-						if( entities.Length<bufferSize )
-						{
-							NativeArray<Entity> instantiated = entityManager.Instantiate( batch.prefab , bufferSize-entities.Length , Allocator.Temp );
-							entities.AddRange( instantiated );
-							instantiated.Dispose();
-						}
-						else
-						{
-							entityManager.DestroyEntity( entities.AsArray().Slice(bufferSize) );
-							entities.Length = bufferSize;
-						}
-					}
-					
 					Job
 						.WithName("component_data_update_job")
 						.WithReadOnly( buffer ).WithNativeDisableContainerSafetyRestriction( buffer )
 						.WithCode( () =>
 						{
-							for( int i=0 ; i<bufferSize ; i++ )
-							{
-								Entity entity = entities[i];
-
-								// Segment existing = segmentData[ entity ];
-								Segment expected = new Segment{ start=buffer[i].c0 , end=buffer[i].c1 };
-
-								// if( math.lengthsq( existing.start-expected.start + existing.end-expected.end )>1e-4f )
-								cmd.SetComponent( entity , expected );
-							}
+							for( int i=0 ; i<length ; i++ )
+								cmd.SetComponent( entities[i] , new Segment{ start=buffer[i].c0 , end=buffer[i].c1 } );
 						} )
 						.WithBurst().Schedule();
 				}
@@ -115,12 +91,14 @@ namespace Segments
 		}
 
 
-		public void CreateBatch ( in Entity segmentPrefab , out NativeList<float3x2> buffer )
+		public void CreateBatch ( in Entity segmentPrefab , in int length , out NativeArray<float3x2> buffer )
 		{
-			buffer = new NativeList<float3x2>( Allocator.Persistent );
+			buffer = new NativeArray<float3x2>( length , Allocator.Persistent );
+			NativeArray<Entity> entities = EntityManager.Instantiate( segmentPrefab , length , Allocator.Persistent );
 			_batches.Add( new Batch{
 				prefab		= segmentPrefab ,
-				entities	= new NativeList<Entity>( Allocator.Persistent ) ,
+				length		= length ,
+				entities	= entities ,
 				buffer		= buffer
 			} );
 		}
@@ -129,8 +107,9 @@ namespace Segments
 		struct Batch
 		{
 			public Entity prefab;
-			public NativeList<Entity> entities;
-			public NativeList<float3x2> buffer;
+			public int length;
+			public NativeArray<Entity> entities;
+			public NativeArray<float3x2> buffer;
 		}
 
 
